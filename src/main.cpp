@@ -1,4 +1,6 @@
+#include <GL/glew.h>    // for accessing the GPU
 #include <GL/glut.h>
+
 #include <stdio.h>
 
 #define MAJOR 0
@@ -27,7 +29,15 @@ int main(int argc, char** argv)
     glutInitWindowSize(800, 600);   // Initial fallback screen
     glutInitWindowPosition(100, 100);
     glutCreateWindow(title);
-    glutFullScreen();           // Going into fullscreen mode
+    //glutFullScreen();           // Going into fullscreen mode
+
+    // Initialize GLEW
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+    if (err != GLEW_OK) {
+        fprintf(stderr, "GLEW Initialization Failed: %s\n", glewGetErrorString(err));
+        return 1;
+    }
 
     // Register GLUT event callbacks
     glutDisplayFunc(display);
