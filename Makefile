@@ -4,14 +4,14 @@ ifeq ($(OS),Windows_NT)
 	EXE_EXT       := .exe
 	RM            := del /Q
 
-	GRAPHICS_LIBS := -lglew32 -lfreeglut -lopengl32 -lglu32
+	GRAPHICS_LIBS := -lfreeglut -lopengl32 -lglu32
 	LDFLAGS_OS    :=
 else
 	DETECTED_OS   := $(shell uname -s)
 	EXE_EXT       :=
 	RM            := rm -f
 
-	GRAPHICS_LIBS := -lGL -lGLU -lglut -lGLEW
+	GRAPHICS_LIBS := -lGL -lGLU -lglut
 	LDFLAGS_OS    := -Wl,-rpath=libs
 endif
 
