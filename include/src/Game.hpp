@@ -11,7 +11,11 @@ private:
     void renderBitmapString(float x, float y, void *font, const char *string);
     void calculateFPS();
 
+    GLuint player1;
+    GLuint player2;
+
 public:
+    void init();
     Game() : windowWidth(800), windowHeight(600) {} // Initialize with default size
     void updateDimensions(int width, int height);
     void render();

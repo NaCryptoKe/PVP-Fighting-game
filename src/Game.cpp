@@ -1,9 +1,56 @@
 #include "src/Game.hpp"
+#include "src/Renderer.hpp"
 #include <stdio.h>
 
 char fpsString[32] = "FPS: 0.0";
 int frameCount = 0;
 int previousTime = 0;
+
+GLuint createCheckerboardTexture() {
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // 2x2 grid of RGBA pixels (Magenta and Black)
+    GLubyte pixels[] = {
+        255, 0, 255, 255,    0,   0,   0, 255,  // Row 1: Magenta, Black
+          0, 0,   0, 255,  255,   0, 255, 255   // Row 2: Black, Magenta
+    };
+
+    // Set filtering to GL_NEAREST so pixels stay crisp (perfect for pixel art)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    // Texture wrapping options
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Upload pixel data to GPU
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    return textureID;
+}
+
+GLuint createSolidWhiteTexture() {
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    GLubyte pixel[] = { 255, 255, 255, 255 }; // Single White Pixel
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+
+    return textureID;
+}
+
+void Game::init()
+{
+    player1 = createCheckerboardTexture();
+    player2 = createSolidWhiteTexture();
+}
 
 void Game::updateDimensions(int width, int height)
 {
@@ -39,22 +86,26 @@ void Game::calculateFPS()
 
 void Game::render()
 {
-    // Clear the color and depth buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    // Clear Screen
+    Renderer::clear(0.1f, 0.1f, 0.12f, 1.0f);
     glLoadIdentity();
 
     // Render screen-space FPS counter
     glColor3f(1.0f, 1.0f, 1.0f);
     renderBitmapString(20.0f, windowHeight - 50.0f, GLUT_BITMAP_TIMES_ROMAN_24, fpsString);
+    
+    // Floor
+    Renderer::drawQuad(0.0f, 0.0f, 1920.0f, 150.0f, 0.3f, 0.3f, 0.3f, 0.35f);
 
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_QUADS);
-        glVertex2i(100, 100); // Bottom-left
-        glVertex2i(300, 100); // Bottom-right
-        glVertex2i(300, 300); // Top-right
-        glVertex2i(100, 300); // Top-left
-    glEnd();
+    float p1X = 20.0f;
+    float p1Y = 150.0f;
+    float p2X = windowWidth - 220.0f;
+    float p2Y = 150.0f;
+    // Player 1 (Facing Right)
+    Renderer::drawSprite(player1, p1X, p1Y, 200.0f, 300.0f, true);
+
+    // Player 2 (Facing Left)
+    Renderer::drawSprite(player2, p2X, p2Y, 200.0f, 300.0f, true);
 
     glutSwapBuffers();
 }
