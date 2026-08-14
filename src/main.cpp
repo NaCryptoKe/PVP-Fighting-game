@@ -1,20 +1,9 @@
 #include <iostream>
-
-#include <GL/glew.h>    // For accessing GPU extensions
 #include <GL/glut.h>
 #include <stdio.h>
-#include <glm/gtc/type_ptr.hpp> // Needed for passing GLM matrices to OpenGL/Shaders
-
-#include "src/Camera.h"
-#include "src/ModelLoader.h"
 
 #define MAJOR 0
 #define MINOR 1
-
-// Global Camera Instance (Defaults to Perspective 2.5D view)
-Camera mainCamera(glm::vec3(0.0f, 2.0f, 10.0f), glm::vec3(0.0f, 2.0f, 0.0f));
-ModelLoader loader;
-Model model = loader.load("./cube.obj");
 
 char fpsString[32] = "FPS: 0.0";
 int frameCount = 0;
@@ -51,61 +40,6 @@ void display()
     // Clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // =========================================================================
-    // RENDER 3D SCENE
-    // =========================================================================
-    
-    // IF USING SHADERS (Modern OpenGL Core Profile)
-    // glm::mat4 view = mainCamera.GetViewMatrix();
-    // glm::mat4 proj = mainCamera.GetProjectionMatrix();
-    // glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view));
-    // glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, glm::value_ptr(proj));
-
-    // IF USING FIXED-FUNCTION PIPELINE (Legacy OpenGL)
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(glm::value_ptr(mainCamera.GetProjectionMatrix()));
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(glm::value_ptr(mainCamera.GetViewMatrix()));
-
-    // TODO: Render your 3D models here (located on the Z = 0 plane)
-    glPointSize(5.0f);
-    glBegin(GL_POINTS);
-        glColor3f(1.0f, 0.0f, 0.0f);
-        for (size_t i = 0; i < model.positions.size(); ++i)
-        {
-            const glm::vec3& p = model.positions[i];
-            glVertex3f(p.x, p.y, p.z);
-        }
-    glEnd();
-
-    glPointSize(1.0f);
-    glBegin(GL_TRIANGLES);
-        glColor3f(0.0f, 1.0f, 1.0f);
-        for (size_t i = 0; i < model.faces.size(); ++i)
-        {
-            const Face& f = model.faces[i];
-
-            const glm::vec3& a = model.positions[f.a];
-            glVertex3f(a.x, a.y, a.z);
-            const glm::vec3& b = model.positions[f.b];
-            glVertex3f(b.x, b.y, b.z);
-            const glm::vec3& c = model.positions[f.c];
-            glVertex3f(c.x, c.y, c.z);
-        }
-    glEnd();
-
-
-    // =========================================================================
-    // RENDER 2D HUD OVERLAY (FPS TEXT)
-    // =========================================================================
-    // Push identity matrices so HUD text stays static relative to the window
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
     glLoadIdentity();
 
     // Render screen-space FPS counter
@@ -132,9 +66,6 @@ void timer(int)
 void reshape(int width, int height) {
     if (height == 0) height = 1; // Prevent division by zero
     glViewport(0, 0, width, height);
-    
-    // Update camera aspect ratio upon window resize
-    mainCamera.UpdateAspectRatio(static_cast<float>(width), static_cast<float>(height));
 }
 
 void update()
@@ -144,7 +75,7 @@ void update()
 
 int main(int argc, char** argv)
 {
-    const char* str = "PvP Game V";
+    const char* str = "2D Fighting Game V";
     char title[128];
     snprintf(title, sizeof(title), "%s%d.%d", str, MAJOR, MINOR);
 
@@ -155,48 +86,7 @@ int main(int argc, char** argv)
     glutInitWindowPosition(100, 100);
     glutCreateWindow(title);
     glutFullScreen();
-
-    // Initialize GLEW
-    glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
-    if (err != GLEW_OK) {
-        fprintf(stderr, "GLEW Initialization Failed: %s\n", glewGetErrorString(err));
-        return 1;
-    }
-
-    // OpenGL State Settings
-    glEnable(GL_DEPTH_TEST); // Enable Z-buffer depth sorting for 3D meshes
-
     
-    std::cout << "Positions: " << model.positions.size() << '\n';
-    std::cout << "Faces: " << model.faces.size() << '\n';
-
-    std::cout << "\nPositions:\n";
-
-    for (size_t i = 0; i < model.positions.size(); ++i)
-    {
-        const glm::vec3& p = model.positions[i];
-
-        std::cout << i
-                  << ": ("
-                  << p.x << ", "
-                  << p.y << ", "
-                  << p.z << ")\n";
-    }
-
-    std::cout << "\nFaces:\n";
-
-    for (size_t i = 0; i < model.faces.size(); ++i)
-    {
-        const Face& f = model.faces[i];
-
-        std::cout << i
-                  << ": ("
-                  << f.a << ", "
-                  << f.b << ", "
-                  << f.c << ")\n";
-    }
-
     // Register GLUT Event Callbacks
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
