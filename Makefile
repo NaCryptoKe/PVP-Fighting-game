@@ -30,7 +30,7 @@ BUILD_DIR  := build
 SRCS       := $(wildcard $(SRC_DIR)/*.cpp)
 OBJS       := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
 
-TARGET     := build/fighting_game$(EXE_EXT)
+TARGET     := fighting_game$(EXE_EXT)
 
 # Build Rules
 all: $(TARGET)

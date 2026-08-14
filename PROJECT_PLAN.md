@@ -14,10 +14,10 @@ A scoped, school-project-sized fighting game (MK/Street Fighter inspired) using 
 ---
 
 ## Phase 1: Core Setup (Weeks 1, ~8-12 hrs)
-- [ ] Create GLUT window + OpenGL context
-- [ ] Set up GLEW and confirm extensions load correctly
-- [ ] Implement fixed-timestep game loop via `glutTimerFunc`
-- [ ] Set up camera for 2D-plane-in-3D view (fixed side-view, characters move on one axis)
+- [x] Create GLUT window + OpenGL context
+- [x] Set up GLEW and confirm extensions load correctly
+- [x] Implement fixed-timestep game loop via `glutTimerFunc`
+- [-] Set up camera for 2D-plane-in-3D view (fixed side-view, characters move on one axis)
 - [ ] Load and render a single static 3D test model
 
 ## Phase 2: Character Rendering & Animation (Weeks 2, ~22 hrs)

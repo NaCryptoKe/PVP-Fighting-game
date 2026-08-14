@@ -1,10 +1,15 @@
-#include <GL/glew.h>    // for accessing the GPU
+#include <GL/glew.h>    // For accessing GPU extensions
 #include <GL/glut.h>
-
 #include <stdio.h>
+#include <glm/gtc/type_ptr.hpp> // Needed for passing GLM matrices to OpenGL/Shaders
+
+#include "src/Camera.h"
 
 #define MAJOR 0
 #define MINOR 1
+
+// Global Camera Instance (Defaults to Perspective 2.5D view)
+Camera mainCamera(glm::vec3(0.0f, 2.0f, 10.0f), glm::vec3(0.0f, 2.0f, 0.0f));
 
 char fpsString[32] = "FPS: 0.0";
 int frameCount = 0;
@@ -23,21 +28,14 @@ void calculateFPS()
 {
     frameCount++;
 
-    int currentTime = glutGet(GLUT_ELAPSED_TIME); // Amount of total time in milliseconds
+    int currentTime = glutGet(GLUT_ELAPSED_TIME); // Total time in milliseconds
     int timeInterval = currentTime - previousTime; // Change in time
 
-    if (timeInterval > 1000)        // if it exceeds 1 second
+    if (timeInterval > 1000) // Exceeds 1 second
     {
-        float fps = frameCount / (timeInterval / 1000.0f);  // frame per second
+        float fps = frameCount / (timeInterval / 1000.0f);
         previousTime = currentTime;
         frameCount = 0;
-
-        /*
-         * Example:
-         * lets assume the frame Count is 62, and the time Interval was 1033ms
-         * First we convert to second: 1033ms / 1000.0f = 1.033 seconds
-         * Calculate FPS: 62 frames / 1.033 secons = 60.019 FPS
-         */
 
         snprintf(fpsString, sizeof(fpsString), "FPS: %.1f", fps);
     }
@@ -45,13 +43,51 @@ void calculateFPS()
 
 void display()
 {
-    // clear the screen buffer
+    // Clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glColor3f(1.0f, 1.0f, 1.0f);
-    renderBitmapString(-0.9f, 0.85f, GLUT_BITMAP_HELVETICA_18, fpsString);
+    // =========================================================================
+    // RENDER 3D SCENE
+    // =========================================================================
+    
+    // IF USING SHADERS (Modern OpenGL Core Profile)
+    // glm::mat4 view = mainCamera.GetViewMatrix();
+    // glm::mat4 proj = mainCamera.GetProjectionMatrix();
+    // glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view));
+    // glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
-    // Double buffering
+    // IF USING FIXED-FUNCTION PIPELINE (Legacy OpenGL)
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(glm::value_ptr(mainCamera.GetProjectionMatrix()));
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(glm::value_ptr(mainCamera.GetViewMatrix()));
+
+    // TODO: Render your 3D models here (located on the Z = 0 plane)
+
+
+    // =========================================================================
+    // RENDER 2D HUD OVERLAY (FPS TEXT)
+    // =========================================================================
+    // Push identity matrices so HUD text stays static relative to the window
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Render screen-space FPS counter
+    glColor3f(1.0f, 1.0f, 1.0f);
+    renderBitmapString(-0.95f, 0.85f, GLUT_BITMAP_TIMES_ROMAN_24, fpsString);
+
+    // Restore 3D matrices
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    // Swap front and back buffers
     glutSwapBuffers();
 }
 
@@ -60,11 +96,20 @@ void timer(int)
     calculateFPS();
 
     glutPostRedisplay();
-    glutTimerFunc(16, timer, 0);
+    glutTimerFunc(16, timer, 0); // Target ~60 FPS
+}
+
+void reshape(int width, int height) {
+    if (height == 0) height = 1; // Prevent division by zero
+    glViewport(0, 0, width, height);
+    
+    // Update camera aspect ratio upon window resize
+    mainCamera.UpdateAspectRatio(static_cast<float>(width), static_cast<float>(height));
 }
 
 void update()
 {
+    // Game logic / movement updates
 }
 
 int main(int argc, char** argv)
@@ -75,13 +120,11 @@ int main(int argc, char** argv)
 
     // Initialize GLUT
     glutInit(&argc, argv);
-
-    // GLUT_DOUBLE enables smooth double buffeing (front + back buffer)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(800, 600);   // Initial fallback screen
+    glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(title);
-    //glutFullScreen();           // Going into fullscreen mode
+    glutFullScreen();
 
     // Initialize GLEW
     glewExperimental = GL_TRUE;
@@ -91,14 +134,18 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // Register GLUT event callbacks
-    glutDisplayFunc(display);
+    // OpenGL State Settings
+    glEnable(GL_DEPTH_TEST); // Enable Z-buffer depth sorting for 3D meshes
 
-    // Recurring time loop
+    // Register GLUT Event Callbacks
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+
+    // Recurring Timer Loop
     glutTimerFunc(0, timer, 0);
 
+    // Enter Main GLUT Loop
     glutMainLoop();
 
     return 0;
 }
-
