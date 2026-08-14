@@ -60,19 +60,38 @@ void Game::render()
 }
 
 void Game::reshape(int width, int height) {
-    if(height == 0) height = 1;
-    glViewport(0,0, width, height);
+    if (height == 0) height = 1;
 
+    // Target aspect ratio: 1920 / 1080 = 1.7777...
+    const float targetAspect = 1920.0f / 1080.0f;
+    float windowAspect = (float)width / (float)height;
+
+    int vpX = 0, vpY = 0;
+    int vpWidth = width, vpHeight = height;
+
+    if (windowAspect > targetAspect) {
+        // Window is wider than 16:9 -> Pillarbox (black bars on left/right)
+        vpWidth = static_cast<int>(height * targetAspect);
+        vpX = (width - vpWidth) / 2;
+    } else {
+        // Window is taller than 16:9 -> Letterbox (black bars on top/bottom)
+        vpHeight = static_cast<int>(width / targetAspect);
+        vpY = (height - vpHeight) / 2;
+    }
+
+    // 1. Set centered viewport inside the window
+    glViewport(vpX, vpY, vpWidth, vpHeight);
+
+    // 2. Lock world coordinate system permanently to 1920x1080
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    // Bottom left corner is (0,0)
-    gluOrtho2D(0.0, width, 0.0, height);
+    gluOrtho2D(0.0, 1920.0, 0.0, 1080.0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // Let the game class know the resolution
-    updateDimensions(width, height);
+    // 3. Always pass virtual dimensions (1920x1080) to game logic
+    updateDimensions(1920, 1080);
 }
 
 void Game::update()

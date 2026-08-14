@@ -23,8 +23,8 @@ A scoped, school-project-sized **2D fighting game** inspired by Mortal Kombat / 
 
 - [x] Create GLUT window + OpenGL context
 - [x] Implement fixed-timestep game loop via `glutTimerFunc`
-- [ ] Set up 2D orthographic projection
-- [ ] Define screen/world coordinate system
+- [x] Set up 2D orthographic projection
+- [x] Define screen/world coordinate system
 - [ ] Implement basic 2D rendering
 - [ ] Render a textured quad
 - [ ] Load and render a single test sprite
