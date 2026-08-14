@@ -35,6 +35,10 @@ void Renderer::drawSprite(GLuint textureID, float x, float y, float width, float
 {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Enabling alpha blending for transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // Reset tint to full opacity white
 
@@ -61,4 +65,22 @@ void Renderer::drawSprite(GLuint textureID, float x, float y, float width, float
     glEnd();
 
     glDisable(GL_TEXTURE_2D);
+}
+
+void Renderer::drawFighterSprite(GLuint textureID, float footX, float footY, 
+                                 float baseWidth, float baseHeight, 
+                                 float scale, bool flipX) 
+{
+    // 1. Calculate actual rendered size based on scale multiplier
+    float drawWidth  = baseWidth * scale;
+    float drawHeight = baseHeight * scale;
+
+    // 2. Adjust X position so footX is in the exact horizontal center
+    float drawX = footX - (drawWidth / 2.0f);
+    
+    // 3. Y position stays right on the floor baseline
+    float drawY = footY; 
+
+    // 4. Pass calculated bounds to your main quad drawer
+    drawSprite(textureID, drawX, drawY, drawWidth, drawHeight, flipX);
 }

@@ -94,19 +94,20 @@ void Game::render()
     // Render screen-space FPS counter
     glColor3f(1.0f, 1.0f, 1.0f);
     renderBitmapString(20.0f, windowHeight - 50.0f, GLUT_BITMAP_TIMES_ROMAN_24, fpsString);
-    
-    // Floor
-    Renderer::drawQuad(0.0f, 0.0f, 1920.0f, 150.0f, 0.3f, 0.3f, 0.3f, 0.35f);
 
-    float p1X = 20.0f;
-    float p1Y = 150.0f;
-    float p2X = windowWidth - 220.0f;
-    float p2Y = 150.0f;
+    float floor = 150.0f;
+    // Floor
+    Renderer::drawQuad(0.0f, 0.0f, 1920.0f, floor, 0.3f, 0.3f, 0.3f, 0.35f);
+
+    float p1X = 400.0f;
+    //float p1Y = 150.0f;
+    float p2X = windowWidth - 620.0f;
+    //float p2Y = 150.0f;
     // Player 1 (Facing Right)
-    Renderer::drawSprite(player1, p1X, p1Y, 200.0f, 300.0f, true);
+    Renderer::drawFighterSprite(player1, p1X, floor, 180.0f, 270.0f, 1.2f, false);
 
     // Player 2 (Facing Left)
-    Renderer::drawSprite(player2, p2X, p2Y, 200.0f, 300.0f, false);
+    Renderer::drawFighterSprite(player2, p2X, floor, 180.0f, 270.0f, 0.75f, false);
 
     glutSwapBuffers();
 }

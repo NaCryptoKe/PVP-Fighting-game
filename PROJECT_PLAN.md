@@ -28,7 +28,7 @@ A scoped, school-project-sized **2D fighting game** inspired by Mortal Kombat / 
 - [x] Implement basic 2D rendering
 - [x] Render a textured quad
 - [x] Load and render a single test sprite
-- [ ] Implement basic sprite positioning and scaling
+- [x] Implement basic sprite positioning and scaling
 
 ## Phase 2: Sprite System & Animation (Week 2, ~18–22 hrs)
 
