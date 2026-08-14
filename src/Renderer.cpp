@@ -1,6 +1,7 @@
 #include "src/Renderer.hpp"
 
-void Renderer::init() {
+void Renderer::init() 
+{
     // Enable 2D Texturing
     glEnable(GL_TEXTURE_2D);
 
@@ -17,9 +18,9 @@ void Renderer::clear(float r, float g, float b, float a) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Renderer::drawQuad(float x, float y, float width, float height, float r, float g, float b, float a) {
-    // Unbind any active textures so we get flat coloring
-    glBindTexture(GL_TEXTURE_2D, 0);
+void Renderer::drawQuad(float x, float y, float width, float height, float r, float g, float b, float a) 
+{
+    glDisable(GL_TEXTURE_2D);
 
     glColor4f(r, g, b, a);
     glBegin(GL_QUADS);
@@ -30,8 +31,11 @@ void Renderer::drawQuad(float x, float y, float width, float height, float r, fl
     glEnd();
 }
 
-void Renderer::drawSprite(GLuint textureID, float x, float y, float width, float height, bool flipX) {
+void Renderer::drawSprite(GLuint textureID, float x, float y, float width, float height, bool flipX) 
+{
+    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textureID);
+    
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // Reset tint to full opacity white
 
     // Handle texture coordinate flipping for character orientation
@@ -55,4 +59,6 @@ void Renderer::drawSprite(GLuint textureID, float x, float y, float width, float
         glTexCoord2f(uLeft, 1.0f);
         glVertex2f(x, y + height);
     glEnd();
+
+    glDisable(GL_TEXTURE_2D);
 }

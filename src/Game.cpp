@@ -1,5 +1,6 @@
 #include "src/Game.hpp"
 #include "src/Renderer.hpp"
+#include "src/Texture.hpp"
 #include <stdio.h>
 
 char fpsString[32] = "FPS: 0.0";
@@ -48,8 +49,8 @@ GLuint createSolidWhiteTexture() {
 
 void Game::init()
 {
-    player1 = createCheckerboardTexture();
-    player2 = createSolidWhiteTexture();
+    player1 = loadTexture("assets/sprites/player.png");
+    player2 = loadTexture("assets/sprites/player.png");
 }
 
 void Game::updateDimensions(int width, int height)
@@ -105,7 +106,7 @@ void Game::render()
     Renderer::drawSprite(player1, p1X, p1Y, 200.0f, 300.0f, true);
 
     // Player 2 (Facing Left)
-    Renderer::drawSprite(player2, p2X, p2Y, 200.0f, 300.0f, true);
+    Renderer::drawSprite(player2, p2X, p2Y, 200.0f, 300.0f, false);
 
     glutSwapBuffers();
 }

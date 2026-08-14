@@ -1,7 +1,7 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-#include <GL/glut.h>
+#include "GL/glut.h"
 
 class Renderer {
 public:

@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     glutCreateWindow(title);
     glutFullScreen();
 
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    game.init();
 
     // Register GLUT Event Callbacks
     glutDisplayFunc(display);
