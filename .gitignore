@@ -1,0 +1,13 @@
+# Ignore all Python source files
+*.py
+
+# Ignore Python compiled/cache files (highly recommended)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore uv artifacts and virtual environments
+.venv/
+.venv*/
+uv.lock
+.uv/
