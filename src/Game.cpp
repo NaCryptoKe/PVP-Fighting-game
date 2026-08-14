@@ -1,11 +1,15 @@
 #include "src/Game.hpp"
 #include "src/Renderer.hpp"
 #include "src/Texture.hpp"
+#include "src/Font.hpp"
 #include <stdio.h>
 
-char fpsString[32] = "FPS: 0.0";
+char fps[] = "FPS: ";
+char fpsString[32] = "0.0";
 int frameCount = 0;
 int previousTime = 0;
+
+Font gameFont;
 
 GLuint createCheckerboardTexture() {
     GLuint textureID;
@@ -49,8 +53,12 @@ GLuint createSolidWhiteTexture() {
 
 void Game::init()
 {
-    player1 = loadTexture("assets/sprites/player.png");
-    player2 = loadTexture("assets/sprites/player.png");
+    if (!gameFont.load("assets/fonts/street-fighter-alpha-xl-colour.colr.ttf", 32.0f)) {
+        printf("Font loading failed!\n");
+    }
+
+    player1 = loadTexture("assets/characters/player.png");
+    player2 = loadTexture("assets/characters/player.png");
 }
 
 void Game::updateDimensions(int width, int height)
@@ -81,7 +89,7 @@ void Game::calculateFPS()
         previousTime = currentTime;
         frameCount = 0;
 
-        snprintf(fpsString, sizeof(fpsString), "FPS: %.1f", fps);
+        snprintf(fpsString, sizeof(fpsString), "%.1f", fps);
     }
 }
 
@@ -92,8 +100,8 @@ void Game::render()
     glLoadIdentity();
 
     // Render screen-space FPS counter
-    glColor3f(1.0f, 1.0f, 1.0f);
-    renderBitmapString(20.0f, windowHeight - 50.0f, GLUT_BITMAP_TIMES_ROMAN_24, fpsString);
+    gameFont.renderText(fpsString, 180.0f, 1030.0f, 1.0f, 1.0f, 0.0f);
+    gameFont.renderText(fps, 20.0f, 1030.0f, 1.0f, 0.2f, 0.0f);
 
     float floor = 150.0f;
     // Floor
