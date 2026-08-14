@@ -1,15 +1,20 @@
+#include <iostream>
+
 #include <GL/glew.h>    // For accessing GPU extensions
 #include <GL/glut.h>
 #include <stdio.h>
 #include <glm/gtc/type_ptr.hpp> // Needed for passing GLM matrices to OpenGL/Shaders
 
 #include "src/Camera.h"
+#include "src/ModelLoader.h"
 
 #define MAJOR 0
 #define MINOR 1
 
 // Global Camera Instance (Defaults to Perspective 2.5D view)
 Camera mainCamera(glm::vec3(0.0f, 2.0f, 10.0f), glm::vec3(0.0f, 2.0f, 0.0f));
+ModelLoader loader;
+Model model = loader.load("./cube.obj");
 
 char fpsString[32] = "FPS: 0.0";
 int frameCount = 0;
@@ -64,6 +69,31 @@ void display()
     glLoadMatrixf(glm::value_ptr(mainCamera.GetViewMatrix()));
 
     // TODO: Render your 3D models here (located on the Z = 0 plane)
+    glPointSize(5.0f);
+    glBegin(GL_POINTS);
+        glColor3f(1.0f, 0.0f, 0.0f);
+        for (size_t i = 0; i < model.positions.size(); ++i)
+        {
+            const glm::vec3& p = model.positions[i];
+            glVertex3f(p.x, p.y, p.z);
+        }
+    glEnd();
+
+    glPointSize(1.0f);
+    glBegin(GL_TRIANGLES);
+        glColor3f(0.0f, 1.0f, 1.0f);
+        for (size_t i = 0; i < model.faces.size(); ++i)
+        {
+            const Face& f = model.faces[i];
+
+            const glm::vec3& a = model.positions[f.a];
+            glVertex3f(a.x, a.y, a.z);
+            const glm::vec3& b = model.positions[f.b];
+            glVertex3f(b.x, b.y, b.z);
+            const glm::vec3& c = model.positions[f.c];
+            glVertex3f(c.x, c.y, c.z);
+        }
+    glEnd();
 
 
     // =========================================================================
@@ -136,6 +166,36 @@ int main(int argc, char** argv)
 
     // OpenGL State Settings
     glEnable(GL_DEPTH_TEST); // Enable Z-buffer depth sorting for 3D meshes
+
+    
+    std::cout << "Positions: " << model.positions.size() << '\n';
+    std::cout << "Faces: " << model.faces.size() << '\n';
+
+    std::cout << "\nPositions:\n";
+
+    for (size_t i = 0; i < model.positions.size(); ++i)
+    {
+        const glm::vec3& p = model.positions[i];
+
+        std::cout << i
+                  << ": ("
+                  << p.x << ", "
+                  << p.y << ", "
+                  << p.z << ")\n";
+    }
+
+    std::cout << "\nFaces:\n";
+
+    for (size_t i = 0; i < model.faces.size(); ++i)
+    {
+        const Face& f = model.faces[i];
+
+        std::cout << i
+                  << ": ("
+                  << f.a << ", "
+                  << f.b << ", "
+                  << f.c << ")\n";
+    }
 
     // Register GLUT Event Callbacks
     glutDisplayFunc(display);
