@@ -4,7 +4,7 @@
 #include "src/Game.hpp"
 
 #define MAJOR 0
-#define MINOR 1
+#define MINOR 2
 
 Game game;
 
@@ -21,7 +21,8 @@ void update(int)
     glutTimerFunc(16, update, 0); // Target ~60 FPS
 }
 
-void reshape(int width, int height) {
+void reshape(int width, int height) 
+{
     game.reshape(width, height);
 }
 
@@ -37,7 +38,7 @@ int main(int argc, char** argv)
     glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(title);
-    //glutFullScreen();
+    glutFullScreen();
 
     game.init();
 

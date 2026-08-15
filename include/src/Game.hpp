@@ -8,11 +8,7 @@ class Game
 private:
     int windowWidth;
     int windowHeight;
-    void renderBitmapString(float x, float y, void *font, const char *string);
     void calculateFPS();
-
-    GLuint player1;
-    GLuint player2;
 
 public:
     void init();

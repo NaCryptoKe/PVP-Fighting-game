@@ -2,6 +2,7 @@
 #include "src/Renderer.hpp"
 #include "src/Texture.hpp"
 #include "src/Font.hpp"
+#include "src/Sprite.hpp"
 #include <stdio.h>
 
 char fps[] = "FPS: ";
@@ -10,70 +11,23 @@ int frameCount = 0;
 int previousTime = 0;
 
 Font gameFont;
-
-GLuint createCheckerboardTexture() {
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    // 2x2 grid of RGBA pixels (Magenta and Black)
-    GLubyte pixels[] = {
-        255, 0, 255, 255,    0,   0,   0, 255,  // Row 1: Magenta, Black
-          0, 0,   0, 255,  255,   0, 255, 255   // Row 2: Black, Magenta
-    };
-
-    // Set filtering to GL_NEAREST so pixels stay crisp (perfect for pixel art)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
-    // Texture wrapping options
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // Upload pixel data to GPU
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    return textureID;
-}
-
-GLuint createSolidWhiteTexture() {
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    GLubyte pixel[] = { 255, 255, 255, 255 }; // Single White Pixel
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-
-    return textureID;
-}
-
+Sprite player1;
+Sprite player2;
 void Game::init()
 {
     if (!gameFont.load("assets/fonts/street-fighter-alpha-xl-colour.colr.ttf", 32.0f)) {
         printf("Font loading failed!\n");
     }
-
-    player1 = loadTexture("assets/characters/player.png");
-    player2 = loadTexture("assets/characters/player.png");
+    GLuint tex1 = loadTexture("assets/characters/ryu/jump-forward/00.png");
+    GLuint tex2 = loadTexture("assets/characters/player.png");
+    player1 = Sprite(tex1, 180.0f, 270.0f);
+    player2 = Sprite(tex2, 180.0f, 270.0f);
 }
 
 void Game::updateDimensions(int width, int height)
 {
     windowWidth     = width;
     windowHeight    = height;
-}
-
-void Game::renderBitmapString(float x, float y, void *font, const char *string)
-{
-    glRasterPos2f(x, y);
-    for (const char *c = string; *c != '\0'; c++)
-    {
-        glutBitmapCharacter(font, *c);
-    }
 }
 
 void Game::calculateFPS()
@@ -112,10 +66,16 @@ void Game::render()
     float p2X = windowWidth - 620.0f;
     //float p2Y = 150.0f;
     // Player 1 (Facing Right)
-    Renderer::drawFighterSprite(player1, p1X, floor, 180.0f, 270.0f, 1.2f, false);
+    player1.setFlip(true);
+    player1.setPosition(p1X, floor);
+    player1.setScale(1.2f);
+    player1.draw();
 
     // Player 2 (Facing Left)
-    Renderer::drawFighterSprite(player2, p2X, floor, 180.0f, 270.0f, 0.75f, false);
+    player2.setFlip(false);
+    player2.setPosition(p2X, floor);
+    player2.setScale(1.0f);
+    player2.draw();
 
     glutSwapBuffers();
 }
