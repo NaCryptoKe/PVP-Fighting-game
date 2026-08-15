@@ -32,24 +32,24 @@ A scoped, school-project-sized **2D fighting game** inspired by Mortal Kombat / 
 
 ## Phase 2: Sprite System & Animation (Week 2, ~18–22 hrs)
 
-* [ ] Design `Sprite` representation
-* [ ] Load PNG/JPG textures
-* [ ] Implement texture management
-* [ ] Implement sprite rendering using textured quads
-* [ ] Implement sprite sheets / texture atlases
-* [ ] Implement frame-based animation
-* [ ] Implement animation playback and timing
-* [ ] Create basic animations:
+* [x] Design `Sprite` representation
+* [x] Load PNG/JPG textures
+* [x] Implement texture management
+* [x] Implement sprite rendering using textured quads
+* [x] Implement sprite sheets / texture atlases
+* [x] Implement frame-based animation
+* [x] Implement animation playback and timing
+* [x] Create basic animations:
 
   * [ ] Idle
   * [ ] Walk
-  * [ ] Jump
+  * [x] Jump
   * [ ] Crouch
   * [ ] Light attack
   * [ ] Heavy attack
   * [ ] Block
   * [ ] Hit reaction
-* [ ] Render both characters simultaneously
+* [x] Render both characters simultaneously
 
 ## Phase 3: Input & Movement (Week 3, ~10–15 hrs)
 
