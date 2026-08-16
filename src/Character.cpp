@@ -9,22 +9,24 @@ Character::Character()
       health(100), maxHealth(100) {}
 
 bool Character::init(
-    // const char* idleFolder, int idleFrames,
+    const char* idleFolder, int idleFrames,
     const char* jumpFolder, int jumpFrames
 )
 {
-    // Idle loops forever; jump plays once then we transition back out of it.
-    // bool idleOk = idleAnim.loadFromFiles(idleFolder, idleFrames, 0.12f, true);
+    // Idle loops forever; // jump plays once then we transition back out of it.
+    bool idleOk = idleAnim.loadFromFiles(idleFolder, idleFrames, 0.12f, true);
     bool jumpOk = jumpAnim.loadFromFiles(jumpFolder, jumpFrames, 0.08f, false);
 
-    if (!jumpOk) {
+    if (!idleOk || !jumpOk) {
         return false;
     }
 
     currentAnim = &jumpAnim;
     currentState = CharacterState::IDLE;
 
-    sprite = Sprite(currentAnim->getCurrentTexture(), 180.0f, 270.0f);
+    TextureData initialTex = currentAnim->getCurrentTexture();
+
+    sprite = Sprite(initialTex);
     sprite.setFlip(!facingRight);
 
     return true;
@@ -98,6 +100,11 @@ void Character::setPosition(float px, float py)
 void Character::setFacing(bool right)
 {
     facingRight = right;
+}
+
+void Character::setScale(int scale)
+{
+    sprite.setScale(scale);
 }
 
 float Character::getX() const

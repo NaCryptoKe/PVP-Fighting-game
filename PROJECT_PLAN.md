@@ -176,32 +176,3 @@ A scoped, school-project-sized **2D fighting game** inspired by Mortal Kombat / 
 * Keep hitboxes independent from the visible sprite. The sprite is presentation; the hitbox is gameplay.
 * Keep rendering, input, combat, animation, and game-state logic separated so the project does not become one enormous `main.cpp`.
 
----
-
-## Core Architecture
-
-```text
-                  Game
-                   │
-       ┌───────────┼───────────┐
-       │           │           │
-     Input      Gameplay    Rendering
-       │           │           │
-       │      ┌────┴────┐      │
-       │      │         │      │
-       │  Character  Combat    │
-       │      │         │      │
-       │      └────┬────┘      │
-       │           │           │
-       └───────────┼───────────┘
-                   │
-               Animation
-                   │
-                Sprites
-                   │
-                OpenGL
-                   │
-                 GLUT
-```
-
-The primary goal is to finish a **small, complete, playable 2D fighter**, rather than building an overly ambitious engine around it.

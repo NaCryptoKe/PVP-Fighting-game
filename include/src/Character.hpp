@@ -22,6 +22,7 @@ private:
 
     // Animation idleAnim; and others
     Animation jumpAnim;
+    Animation idleAnim;
     Animation* currentAnim;
 
     float x, y;
@@ -37,7 +38,7 @@ public:
     Character();
 
     bool init(
-        // const char* idleFolder, int idleFrames,
+        const char* idleFolder, int idleFrames,
         const char* jumpFolder, int jumpFrames
     );
 
@@ -47,6 +48,7 @@ public:
     void setState(CharacterState newState);
     void setPosition(float px, float py);
     void setFacing(bool right);
+    void setScale(int scale);
 
     float getX() const;
     float getY() const;

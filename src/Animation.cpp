@@ -1,12 +1,15 @@
 #include "src/Animation.hpp"
-#include "src/Texture.hpp"
 #include <cstdio>
 
 Animation::Animation()
     : frameDuration(0.1f), elapsedTime(0.0f), currentFrame(0),
       looping(true), finished(false) {}
 
-bool Animation::loadFromFiles(const char* folderPath, int frameCount, float duration, bool loop) 
+bool Animation::loadFromFiles(
+    const char* folderPath, 
+    int frameCount, float duration, 
+    bool loop = true
+)
 {
     frameDuration = duration;
     looping = loop;
@@ -22,8 +25,8 @@ bool Animation::loadFromFiles(const char* folderPath, int frameCount, float dura
         char path[256];
         snprintf(path, sizeof(path), "%s%02d.png", folderPath, i);
 
-        GLuint tex = loadTexture(path);
-        if (tex == 0) 
+        TextureData tex = loadTexture(path);
+        if (tex.id == 0) 
         {
             printf("Animation: failed to load frame %s\n", path);
             return false;
@@ -82,10 +85,10 @@ bool Animation::isFinished() const
     return finished;
 }
 
-GLuint Animation::getCurrentTexture() const 
+TextureData Animation::getCurrentTexture() const 
 {
     if (frames.empty()) {
-        return 0;
+        return { 0, 0, 0 };
     }
     return frames[currentFrame];
 }

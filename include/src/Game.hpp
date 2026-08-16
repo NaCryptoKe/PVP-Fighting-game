@@ -3,9 +3,9 @@
 
 #include "GL/glut.h"
 
-#include "src/Sprite.hpp"
-#include "src/Animation.hpp"
+#include "src/Character.hpp"
 #include "src/Font.hpp"
+#include "src/Renderer.hpp"
 
 class Game
 {
@@ -14,11 +14,8 @@ private:
     int windowHeight;
     void calculateFPS();
 
-    Sprite player1;
-    Sprite player2;
-
-    Animation player1Anim;
-    Animation player2Anim;
+    Character player1;
+    Character player2;
 
     Font gameFont;
 

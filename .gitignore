@@ -7,7 +7,7 @@ __pycache__/
 *$py.class
 *.toml
 .python-version
-*.png
+#*.png
 
 # Ignore uv artifacts and virtual environments
 .venv/

@@ -1,6 +1,4 @@
 #include "src/Game.hpp"
-#include "src/Renderer.hpp"
-#include "src/Texture.hpp"
 #include <stdio.h>
 
 char fps[] = "FPS: ";
@@ -12,17 +10,23 @@ void Game::init()
 {
     if (!gameFont.load("assets/fonts/mainFont.ttf", 32.0f)) printf("Font loading failed!\n");
     
-    if (!player1Anim.loadFromFiles("assets/characters/ryu/jump-forward/", 5, 0.16f))
+    if (!player1.init(
+        "assets/characters/ryu/jump-forward/", 5,
+        "assets/characters/ryu/jump-forward/", 5
+    ))
         printf("Player 1 animation failed to load!");
 
-    GLuint tex2 = loadTexture("assets/characters/player.png")
-    ;
-    player1 = Sprite(player1Anim.getCurrentTexture(), 180.0f, 270.0f);
-    player2 = Sprite(tex2, 180.0f, 270.0f);
+    if (!player2.init(
+        "assets/characters/ryu/jump-forward/", 5,
+        "assets/characters/ryu/jump-forward/", 5
+    ))
+        printf("Player 1 animation failed to load!");
 
-    player1.setFlip(true);
+    player1.setFacing(true);    // face right
+    player2.setFacing(false);   // face left
 
-    player2.setFlip(false);
+    player1.setScale(3);
+    player2.setScale(4.5);
 
     lastTime = glutGet(GLUT_ELAPSED_TIME);
 }
@@ -48,36 +52,6 @@ void Game::calculateFPS()
 
         snprintf(fpsString, sizeof(fpsString), "%.1f", fps);
     }
-}
-
-void Game::render()
-{
-    Renderer::clear(0.1f, 0.1f, 0.12f, 1.0f);
-    glLoadIdentity();
-
-    // Render screen-space FPS counter
-    gameFont.renderText(fpsString, 180.0f, 1030.0f, 1.0f, 1.0f, 0.0f);
-    gameFont.renderText(fps, 20.0f, 1030.0f, 1.0f, 0.2f, 0.0f);
-
-    float floor = 150.0f;
-    Renderer::drawQuad(0.0f, 0.0f, 1920.0f, floor, 0.3f, 0.3f, 0.3f, 0.35f);
-
-    float p1X = 400.0f;
-    float p1Y = 150.0f;
-    float p2X = windowWidth - 620.0f;
-    float p2Y = 150.0f;
-
-    // Player 1 (Facing Right)
-    player1.setPosition(p1X, p1Y);
-    player1.setScale(1.2f);
-    player1.draw();
-
-    // Player 2 (Facing Left)
-    player2.setPosition(p2X, p2Y);
-    player2.setScale(1.0f);
-    player2.draw();
-
-    glutSwapBuffers();
 }
 
 void Game::reshape(int width, int height) {
@@ -123,7 +97,31 @@ void Game::update()
     float deltaTime = (currentTime - lastTime) / 1000.0f;
     lastTime = currentTime;
 
-    player1Anim.update(deltaTime);
+    float floor = 150.0f;
+    float p1X = 400.0f;
+    float p2X = windowWidth - 620.0f;
     
-    player1.setTexture(player1Anim.getCurrentTexture());
+    player1.setPosition(p1X, floor);
+    player2.setPosition(p2X, floor);
+
+    player1.update(deltaTime);
+    player2.update(deltaTime);
+}
+
+void Game::render()
+{
+    Renderer::clear(0.1f, 0.1f, 0.12f, 1.0f);
+    glLoadIdentity();
+
+    // Render screen-space FPS counter
+    gameFont.renderText(fpsString, 180.0f, 1030.0f, 1.0f, 1.0f, 0.0f);
+    gameFont.renderText(fps, 20.0f, 1030.0f, 1.0f, 0.2f, 0.0f);
+
+    float floor = 150.0f;
+    Renderer::drawQuad(0.0f, 0.0f, 1920.0f, floor, 0.3f, 0.3f, 0.3f, 0.35f);
+
+    player1.render();
+    player2.render();
+
+    glutSwapBuffers();
 }

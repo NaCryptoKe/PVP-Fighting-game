@@ -15,7 +15,6 @@ void display()
 
 void update(int)
 {
-    // Game logic / movement updates
     game.update();
     glutPostRedisplay();
     glutTimerFunc(16, update, 0); // Target ~60 FPS

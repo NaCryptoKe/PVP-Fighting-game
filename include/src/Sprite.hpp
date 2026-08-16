@@ -3,21 +3,22 @@
 
 #include "GL/glut.h"
 
+#include "src/Texture.hpp"
+
 class Sprite
 {
 private:
-    GLuint textureID;
+    TextureData texture;
 
     float x, y; // foot anchor points
-    float baseWidth, baseHeight;
     float scale;
     bool flipX;
 
 public:
     Sprite();
-    Sprite(GLuint texture, float width, float height);
+    Sprite(TextureData texture);
 
-    void setTexture(GLuint texture);
+    void setTexture(TextureData texture);
     void setPosition(float x, float y);
     void setScale(float scale);
     void setFlip(bool flip);
