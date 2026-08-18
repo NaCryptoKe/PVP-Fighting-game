@@ -21,7 +21,7 @@ void Renderer::clear(float r, float g, float b, float a) {
 void Renderer::drawQuad(
     float x, float y, 
     float width, float height, 
-    float r, float g, float b, float a = 1.0f
+    float r, float g, float b, float a
 )
 {
     glDisable(GL_TEXTURE_2D);
@@ -39,7 +39,7 @@ void Renderer::drawSprite(
     GLuint textureID, 
     float x, float y,
     float width, float height,
-    bool flipX = false
+    bool flipX
 )
 {
     glEnable(GL_TEXTURE_2D);

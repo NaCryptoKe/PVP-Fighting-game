@@ -30,7 +30,7 @@ public:
     bool loadFromFiles(
         const char* folderPath, 
         int frameCount, float duration, 
-        bool loop = false
+        bool loop = true
     );
 
     // Advances playback. Call once per frame with the time elapsed since last call.

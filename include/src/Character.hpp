@@ -4,6 +4,7 @@
 #include "src/Sprite.hpp"
 #include "src/Animation.hpp"
 
+// Finite State machines
 enum class CharacterState 
 {
     IDLE,
@@ -20,10 +21,9 @@ class Character
 private:
     Sprite sprite;
 
-    // Animation idleAnim; and others
+    Animation idleAnim; //and others
     Animation jumpAnim;
-    Animation idleAnim;
-    Animation* currentAnim;
+    Animation* currentAnim; // A pointer pointing to the current animation
 
     float x, y;
     float velocityX, velocityY;

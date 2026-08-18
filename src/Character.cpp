@@ -15,28 +15,25 @@ bool Character::init(
 {
     // Idle loops forever; // jump plays once then we transition back out of it.
     bool idleOk = idleAnim.loadFromFiles(idleFolder, idleFrames, 0.12f, true);
-    bool jumpOk = jumpAnim.loadFromFiles(jumpFolder, jumpFrames, 0.08f, false);
+    bool jumpOk = jumpAnim.loadFromFiles(jumpFolder, jumpFrames, 0.16f, false);
 
-    if (!idleOk || !jumpOk) {
-        return false;
-    }
+    if (!idleOk || !jumpOk) return false;
 
-    currentAnim = &jumpAnim;
+    currentAnim = &idleAnim;
     currentState = CharacterState::IDLE;
 
     TextureData initialTex = currentAnim->getCurrentTexture();
 
     sprite = Sprite(initialTex);
-    sprite.setFlip(!facingRight);
+    sprite.setFlip(facingRight);
 
     return true;
 }
 
 void Character::update(float deltaTime)
 {
-    if (!currentAnim) {
+    if (!currentAnim)
         return; // init() wasn't called / failed - nothing to animate
-    }
 
     // --- Advance current animation ---
     currentAnim->update(deltaTime);
@@ -46,9 +43,8 @@ void Character::update(float deltaTime)
     // fall back to idle. This is the same logic that used to live
     // directly in Game::update() - now it's centralized here so
     // future states (attack, hit-stun, etc.) all follow the same pattern.
-    if (currentState == CharacterState::JUMPING && currentAnim->isFinished()) {
+    if (currentState == CharacterState::JUMPING && currentAnim->isFinished()) 
         setState(CharacterState::IDLE);
-    }
 
     // --- Apply movement ---
     x += velocityX * deltaTime;

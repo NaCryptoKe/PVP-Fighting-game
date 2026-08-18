@@ -8,7 +8,7 @@ Animation::Animation()
 bool Animation::loadFromFiles(
     const char* folderPath, 
     int frameCount, float duration, 
-    bool loop = true
+    bool loop
 )
 {
     frameDuration = duration;

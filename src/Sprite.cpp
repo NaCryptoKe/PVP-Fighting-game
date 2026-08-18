@@ -15,12 +15,12 @@ Sprite::Sprite(TextureData texture)
 
 void Sprite::setTexture(TextureData texture) 
 { 
-    texture = texture; 
+    this->texture = texture; 
 }
 
 void Sprite::setPosition(float px, float py) { x = px; y = py; }
 void Sprite::setScale(float s) { scale = s; }
-void Sprite::setFlip(bool flip) { flipX = flip; }
+void Sprite::setFlip(bool flip) { flipX = !flip; }
 
 void Sprite::draw() const {
     Renderer::drawFighterSprite(

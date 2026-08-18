@@ -11,7 +11,7 @@ void Game::init()
     if (!gameFont.load("assets/fonts/mainFont.ttf", 32.0f)) printf("Font loading failed!\n");
     
     if (!player1.init(
-        "assets/characters/ryu/jump-forward/", 5,
+        "assets/characters/ryu/idle/", 3,
         "assets/characters/ryu/jump-forward/", 5
     ))
         printf("Player 1 animation failed to load!");
@@ -26,7 +26,7 @@ void Game::init()
     player2.setFacing(false);   // face left
 
     player1.setScale(3);
-    player2.setScale(4.5);
+    player2.setScale(5);
 
     lastTime = glutGet(GLUT_ELAPSED_TIME);
 }
