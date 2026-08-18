@@ -53,9 +53,9 @@ A scoped, school-project-sized **2D fighting game** inspired by Mortal Kombat / 
 
 ## Phase 3: Input & Movement (Week 3, ~10–15 hrs)
 
-* [ ] Track key state manually via `glutKeyboardFunc` / `glutKeyboardUpFunc`
-* [ ] Use a bool array or equivalent input-state structure
-* [ ] Implement walk left/right
+* [x] Track key state manually via `glutKeyboardFunc` / `glutKeyboardUpFunc`
+* [x] Use a bool array or equivalent input-state structure
+* [x] Implement walk left/right
 * [ ] Implement jump
 * [ ] Implement crouch
 * [ ] Implement facing direction
@@ -66,7 +66,7 @@ A scoped, school-project-sized **2D fighting game** inspired by Mortal Kombat / 
 
 ## Phase 4: Combat Core (Week 4, ~17 hrs)
 
-* [ ] Design character state machine:
+* [x] Design character state machine:
 
   * [ ] Idle
   * [ ] Walk

@@ -17,7 +17,7 @@ endif
 
 # Compiler and Flags
 CXX        := g++
-CXXFLAGS   := -Iinclude -Wall -Wextra -Wpedantic -Werror -std=c++17 -O2 -g3
+CXXFLAGS   := -Iinclude -Wall -Wextra -Wpedantic -std=c++17 -O2 -g3
 LINKER     := -Llibs $(LDFLAGS_OS) $(GRAPHICS_LIBS)
 
 # Directories
