@@ -15,6 +15,8 @@ AABB HitBox::toWorld(float footX, float footY, bool facingRight) const
 
 bool aabbOverlap(const AABB& a, const AABB& b)
 {
-    return a.left < b.right && a.right > b.left &&
-           a.bottom < b.top && a.top > b.bottom;
+    return  a.left < b.right && 
+            a.right > b.left &&
+            a.bottom < b.top && 
+            a.top > b.bottom;
 }

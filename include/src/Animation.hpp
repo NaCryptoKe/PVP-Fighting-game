@@ -35,16 +35,17 @@ public:
 
     // Advances playback. Call once per frame with the time elapsed since last call.
     void update(float deltaTime);
+    // Delta time is useful becuase we don't want spikes for frames in differing computers
 
     // Restarts playback from frame 0.
-    void reset();
+    void reset();       // essential because we don't want it to continue from previous or other frames
 
     void setLooping(bool loop);
     bool isFinished() const;
 
-    TextureData getCurrentTexture() const;
-    int getCurrentFrameIndex() const;
-    int getFrameCount() const;
+    TextureData getCurrentTexture() const;  // id, height, width of current texture
+    int getCurrentFrameIndex() const;       // index of frame in current frames vector
+    int getFrameCount() const;              // size of frames
 };
 
 #endif // ANIMATION_HPP

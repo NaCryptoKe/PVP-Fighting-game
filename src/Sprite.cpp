@@ -18,7 +18,7 @@ void Sprite::setTexture(TextureData texture)
     this->texture = texture; 
 }
 
-void Sprite::setPosition(float px, float py) { x = px; y = py; }
+void Sprite::setPosition(float px, float py) { x = px; y = py; }  // Re-iterating, using anchor points not co-ord points
 void Sprite::setScale(float s) { scale = s; }
 void Sprite::setFlip(bool flip) { flipX = !flip; }
 

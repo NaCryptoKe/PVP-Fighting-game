@@ -11,7 +11,7 @@ bool Animation::loadFromFiles(
     bool loop
 )
 {
-    frameDuration = duration;
+    frameDuration = duration; // how long each frame should take
     looping = loop;
     elapsedTime = 0.0f;
     currentFrame = 0;
@@ -23,7 +23,8 @@ bool Animation::loadFromFiles(
     for (int i = 0; i < frameCount; ++i) 
     {
         char path[256];
-        snprintf(path, sizeof(path), "%s%02d.png", folderPath, i);
+        snprintf(path, sizeof(path), "%s%02d.png", folderPath, i);  // basically delegating finding png
+        // to naming format of 0x.png
 
         TextureData tex = loadTexture(path);
         if (tex.id == 0) 
@@ -35,7 +36,7 @@ bool Animation::loadFromFiles(
         frames.push_back(tex);
     }
 
-    return !frames.empty();
+    return !frames.empty(); // If frames is empty it means it didn't load
 }
 
 void Animation::update(float deltaTime) 
@@ -47,12 +48,12 @@ void Animation::update(float deltaTime)
 
     elapsedTime += deltaTime;
 
-    while (elapsedTime >= frameDuration) 
+    while (elapsedTime >= frameDuration) // to calculate a frames duration has passed or not
     {
         elapsedTime -= frameDuration;
         currentFrame++;
 
-        if (currentFrame >= (int)frames.size()) 
+        if (currentFrame >= (int)frames.size()) // diagnosing if it is looping or not
         {
             if (looping) 
             {
@@ -87,7 +88,8 @@ bool Animation::isFinished() const
 
 TextureData Animation::getCurrentTexture() const 
 {
-    if (frames.empty()) {
+    if (frames.empty()) 
+    {
         return { 0, 0, 0 };
     }
     return frames[currentFrame];

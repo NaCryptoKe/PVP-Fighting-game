@@ -13,7 +13,9 @@ void Renderer::init()
     glDisable(GL_DEPTH_TEST);
 }
 
-void Renderer::clear(float r, float g, float b, float a) {
+// Remove everything and set to background color
+void Renderer::clear(float r, float g, float b, float a)
+{
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT);
 }

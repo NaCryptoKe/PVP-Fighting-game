@@ -1,6 +1,7 @@
 #ifndef CHARACTER_HPP
 #define CHARACTER_HPP
 
+#include "src/Renderer.hpp"
 #include "src/Sprite.hpp"
 #include "src/Animation.hpp"
 #include "src/Input.hpp"
@@ -121,6 +122,8 @@ public:
     AABB getHurtboxWorld() const;
     bool isBlocking() const;
     void registerHitLanded(); // Game calls this right after applying damage
+
+    void drawHurtBox();
 
     void applyHit(int damage, bool wasBlocked);
 

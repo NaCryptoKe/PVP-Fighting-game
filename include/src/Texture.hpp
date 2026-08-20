@@ -10,8 +10,8 @@
 struct TextureData
 {
     GLuint id;
-    int width;
-    int height;
+    int width;      // Width of the image
+    int height;     // Height of the image
 };
 
 // Function declaration
