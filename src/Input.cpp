@@ -2,10 +2,9 @@
 #include <cctype>
 
 static bool g_keys[256] = { false };        // ASCII keys, indexed by lowercase char
+                                            // Basically a LUT
 static bool g_shiftDown = false;
 static bool g_specialKeys[4] = { false, false, false, false };
-
-enum SpecialIndex { SPECIAL_UP = 0, SPECIAL_DOWN = 1, SPECIAL_LEFT = 2, SPECIAL_RIGHT = 3 };
 
 void handleKeyDown(unsigned char key, int x, int y)
 {
@@ -43,6 +42,7 @@ void handleSpecialKeyUp(int key, int x, int y)
     }
 }
 
+// Takes keycode so that, and returns bool state of current state
 bool isGlutKeyDown(KeyCode code)
 {
     switch (code)
@@ -74,6 +74,7 @@ bool isGlutKeyDown(KeyCode code)
     }
 }
 
+// Creating a hasmap for bindings_
 void InputManager::setBinding(InputAction action, KeyCode key)
 {
     bindings_[action] = key;

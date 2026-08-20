@@ -181,6 +181,19 @@ void Game::resolveStageBounds()
     player2.setPosition(p2x, player2.getY());
 }
 
+void Game::drawDebugBoxes(Character &c)
+{
+    AABB hurt = c.getHurtboxWorld();
+    Renderer::drawQuad(
+        hurt.left, hurt.bottom,
+        hurt.right - hurt.left, hurt.top - hurt.bottom,
+        0.0f, 1.0f, 0.4f, 0.8f
+    );
+
+    // Implement hitbox while active next
+    // TBD
+}
+
 void Game::update()
 {
     calculateFPS();
@@ -219,6 +232,9 @@ void Game::render()
 
     player1.render();
     player2.render();
+
+    drawDebugBoxes(player1);
+    drawDebugBoxes(player2);
 
     glutSwapBuffers();
 }

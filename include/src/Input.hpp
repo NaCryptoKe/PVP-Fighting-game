@@ -5,6 +5,8 @@
 #include <functional>
 #include "GL/glut.h"
 
+#include <stdio.h>
+
 enum class InputAction
 {
     JUMP,
@@ -19,7 +21,7 @@ enum class InputAction
     ENHANCE
 };
 
-enum class KeyCode
+enum class KeyCode  // Actual key code the game supports
 {
     // Player 1 default keys
     W, S, D, A,
@@ -30,6 +32,14 @@ enum class KeyCode
     // through a separate callback pair (see handleSpecialKeyDown/Up)
     Up, Down, Left, Right,
     Num1, Num2, Num3, Num4, Num5, Num6
+};
+
+enum SpecialIndex 
+{ 
+    SPECIAL_UP = 0, 
+    SPECIAL_DOWN = 1, 
+    SPECIAL_LEFT = 2, 
+    SPECIAL_RIGHT = 3 
 };
 
 struct InputState

@@ -28,8 +28,17 @@ void Renderer::drawQuad(
 {
     glDisable(GL_TEXTURE_2D);
 
-    glColor4f(r, g, b, a);
+    glColor4f(r, g, b, a-0.7);
     glBegin(GL_QUADS);
+        glVertex2f(x, y);                  // Bottom-Left
+        glVertex2f(x + width, y);          // Bottom-Right
+        glVertex2f(x + width, y + height); // Top-Right
+        glVertex2f(x, y + height);         // Top-Left
+    glEnd();
+
+    glColor4f(r, g, b, a);
+    glLineWidth(3.0f);
+    glBegin(GL_LINE_LOOP);
         glVertex2f(x, y);                  // Bottom-Left
         glVertex2f(x + width, y);          // Bottom-Right
         glVertex2f(x + width, y + height); // Top-Right

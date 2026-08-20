@@ -123,8 +123,6 @@ public:
     bool isBlocking() const;
     void registerHitLanded(); // Game calls this right after applying damage
 
-    void drawHurtBox();
-
     void applyHit(int damage, bool wasBlocked);
 
     float getX() const;

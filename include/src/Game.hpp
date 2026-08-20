@@ -28,6 +28,8 @@ private:
     void resolveCombat();       // hit detection between player1/player2
     void resolveStageBounds();  // keep both players on-screen and apart
 
+    void drawDebugBoxes(Character &c);
+
 public:
     void init();
     Game() : windowWidth(800), windowHeight(600) {}
