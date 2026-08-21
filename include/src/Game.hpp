@@ -34,6 +34,7 @@ public:
     void init();
     Game() : windowWidth(800), windowHeight(600) {}
     void updateDimensions(int width, int height);
+    void handleJoystick(unsigned int buttonMask, int x, int y, int z);
     void render();
     void update();
     void reshape(int width, int height);

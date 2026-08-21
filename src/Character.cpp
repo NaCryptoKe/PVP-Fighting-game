@@ -18,7 +18,8 @@ Character::Character()
     setHurtboxes(80.0f, 180.0f, 90.0f, 110.0f); // sane defaults; override via setHurtboxes()
 }
 
-bool Character::init(
+bool Character::init
+(
     const char* idleFolder, int idleFrames,
     const char* jumpFolder, int jumpFrames
 )

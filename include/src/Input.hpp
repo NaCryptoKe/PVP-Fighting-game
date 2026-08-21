@@ -31,7 +31,12 @@ enum class KeyCode  // Actual key code the game supports
     // Player 2 default keys - arrows are GLUT "special" keys, handled
     // through a separate callback pair (see handleSpecialKeyDown/Up)
     Up, Down, Left, Right,
-    Num1, Num2, Num3, Num4, Num5, Num6
+    Num1, Num2, Num3, Num4, Num5, Num6,
+
+    // PS4 Controller using glutJoystickFunc
+    PadCross, PadCircle, PadSquare, PadTriangle,
+    PadL1, PadR1, PadL2, PadR2, PadL3, PadR3,
+    PadStickUp, PadStickDown, PadStickLeft, PadStickRight
 };
 
 enum SpecialIndex 

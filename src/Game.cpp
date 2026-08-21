@@ -134,6 +134,49 @@ void Game::reshape(int width, int height) {
     updateDimensions(1920, 1080);
 }
 
+/*
+ * Joystick Layout of the PS4 Joystick
+ * 0 - Cross
+ * 1 - Circle
+ * 2 - Triangle
+ * 3 - Square
+ * 4 - L1
+ * 5 - R1
+ * 6 - L2
+ * 7 - R2
+ * 11 - L3
+ * 12 - R3
+ * 10 - PS button
+ * 9 - Option
+ * 8 - Share
+*/
+void Game::handleJoystick(unsigned int buttonMask, int x, int y, int z)
+{
+    // Stores the button state from the *last* time this function ran
+    static unsigned int previousMask = 0;
+
+    // 1. Find which buttons CHANGED state (XOR)
+    unsigned int changed = buttonMask ^ previousMask;
+
+    // 2. Filter out releases: keep only buttons that changed AND are currently down
+    unsigned int newlyPressed = changed & buttonMask;
+
+    // 3. Print the index of any newly pressed button
+    if (newlyPressed > 0) {
+        printf("Button Pressed: ");
+        for (int i = 0; i < 32; i++) {
+            if (newlyPressed & (1 << i)) {
+                printf("[%d] ", i);
+            }
+        }
+        printf("\n");
+    }
+
+    // Save the current state to use as history in the next poll cycle
+    previousMask = buttonMask;
+    glutPostRedisplay();
+}
+
 void Game::resolveCombat()
 {
     struct Pair { Character* attacker; Character* defender; };

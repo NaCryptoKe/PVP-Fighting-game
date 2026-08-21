@@ -26,6 +26,11 @@ void reshape(int width, int height)
     game.reshape(width, height);
 }
 
+void joystickCallback(unsigned int buttonMask, int x, int y, int z)
+{
+    game.handleJoystick(buttonMask, x, y, z);
+}
+
 int main(int argc, char** argv)
 {
     const char* str = "2D Fighting Game V";
@@ -47,6 +52,8 @@ int main(int argc, char** argv)
     glutKeyboardUpFunc(handleKeyUp);
     glutSpecialFunc(handleSpecialKeyDown);   // arrow keys for Player 2
     glutSpecialUpFunc(handleSpecialKeyUp);
+    glutJoystickFunc(joystickCallback, 25);
+    
     glutTimerFunc(0, update, 0);
 
     glutMainLoop();
