@@ -6,6 +6,27 @@ static bool g_keys[256] = { false };        // ASCII keys, indexed by lowercase 
 static bool g_shiftDown = false;
 static bool g_specialKeys[4] = { false, false, false, false };
 
+// PS4 related
+static unsigned int g_padButtons = 0;
+static int g_padAxisX = 0;
+static int g_padAxisY = 0;
+
+static const int PAD_STICK_DEADZONE = 300;
+
+static const unsigned int PAD_BTN_CROSS    = 1u << 0;
+static const unsigned int PAD_BTN_CIRCLE   = 1u << 1;
+static const unsigned int PAD_BTN_TRIANGLE = 1u << 2;
+static const unsigned int PAD_BTN_SQUARE   = 1u << 3;
+static const unsigned int PAD_BTN_L1       = 1u << 4;
+static const unsigned int PAD_BTN_R1       = 1u << 5;
+static const unsigned int PAD_BTN_L2       = 1u << 6;
+static const unsigned int PAD_BTN_R2       = 1u << 7;
+static const unsigned int PAD_BTN_SHARE    = 1u << 8;
+static const unsigned int PAD_BTN_OPTION   = 1u << 9;
+static const unsigned int PAD_BTN_PS       = 1u << 10;
+static const unsigned int PAD_BTN_L3       = 1u << 11;
+static const unsigned int PAD_BTN_R3       = 1u << 12;
+
 void handleKeyDown(unsigned char key, int x, int y)
 {
     g_keys[std::tolower(key)] = true;
@@ -70,6 +91,18 @@ bool isGlutKeyDown(KeyCode code)
         case KeyCode::Num5:  return g_keys['5'];
         case KeyCode::Num6:  return g_keys['6'];
 
+        case KeyCode::PadCross:    return (g_padButtons & PAD_BTN_CROSS)    != 0;
+        case KeyCode::PadCircle:   return (g_padButtons & PAD_BTN_CIRCLE)   != 0;
+        case KeyCode::PadSquare:   return (g_padButtons & PAD_BTN_SQUARE)   != 0;
+        case KeyCode::PadTriangle: return (g_padButtons & PAD_BTN_TRIANGLE) != 0;
+        case KeyCode::PadL1:       return (g_padButtons & PAD_BTN_L1)       != 0;
+        case KeyCode::PadR1:       return (g_padButtons & PAD_BTN_R1)       != 0;
+
+        case KeyCode::PadStickUp:    return g_padAxisY >  PAD_STICK_DEADZONE;
+        case KeyCode::PadStickDown:  return g_padAxisY < -PAD_STICK_DEADZONE;
+        case KeyCode::PadStickLeft:  return g_padAxisX < -PAD_STICK_DEADZONE;
+        case KeyCode::PadStickRight: return g_padAxisX >  PAD_STICK_DEADZONE;
+
         default: return false;
     }
 }
@@ -107,6 +140,27 @@ void InputManager::applyPlayer2Defaults()
     setBinding(InputAction::TRIANGLE, KeyCode::Num4);
     setBinding(InputAction::BLOCK, KeyCode::Num5);
     setBinding(InputAction::ENHANCE, KeyCode::Num6);
+}
+
+void InputManager::applyPadDefaults()
+{
+    setBinding(InputAction::JUMP,     KeyCode::PadStickUp);
+    setBinding(InputAction::CROUCH,   KeyCode::PadStickDown);
+    setBinding(InputAction::FORWARD,  KeyCode::PadStickRight);
+    setBinding(InputAction::BACKWARD, KeyCode::PadStickLeft);
+    setBinding(InputAction::CROSS,    KeyCode::PadCross);
+    setBinding(InputAction::CIRCLE,   KeyCode::PadCircle);
+    setBinding(InputAction::SQUARE,   KeyCode::PadSquare);
+    setBinding(InputAction::TRIANGLE, KeyCode::PadTriangle);
+    setBinding(InputAction::BLOCK,    KeyCode::PadL1);
+    setBinding(InputAction::ENHANCE,  KeyCode::PadR1);
+}
+
+void updatePadState(unsigned int buttonMask, int x, int y)
+{
+    g_padButtons = buttonMask;
+    g_padAxisX = x;
+    g_padAxisY = y;
 }
 
 void InputManager::update(const std::function<bool(KeyCode)>& isRawKeyDown)

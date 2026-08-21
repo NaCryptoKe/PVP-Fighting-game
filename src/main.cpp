@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     glutKeyboardUpFunc(handleKeyUp);
     glutSpecialFunc(handleSpecialKeyDown);   // arrow keys for Player 2
     glutSpecialUpFunc(handleSpecialKeyUp);
-    glutJoystickFunc(joystickCallback, 25);
+    glutJoystickFunc(joystickCallback, 16);
     
     glutTimerFunc(0, update, 0);
 

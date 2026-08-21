@@ -72,6 +72,8 @@ public:
 
     void applyPlayer1Defaults(); // WASD + KLJI + Space + Shift
     void applyPlayer2Defaults(); // Arrows + 1234 + 5 + 6
+    void applyPadDefaults();    // PS4 controller
+    
 
 private:
     std::unordered_map<InputAction, KeyCode> bindings_;
@@ -87,5 +89,7 @@ void handleSpecialKeyDown(int key, int x, int y);
 void handleSpecialKeyUp(int key, int x, int y);
 
 bool isGlutKeyDown(KeyCode code);
+
+void updatePadState(unsigned int buttonMask, int x, int y);
 
 #endif // INPUT_HPP

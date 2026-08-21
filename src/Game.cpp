@@ -77,7 +77,7 @@ void Game::init()
     player2.setPosition(1320.0f, FLOOR_Y);
 
     p1Input.applyPlayer1Defaults();
-    p2Input.applyPlayer2Defaults();
+    p2Input.applyPadDefaults();
 
     lastTime = glutGet(GLUT_ELAPSED_TIME);
 }
@@ -152,6 +152,8 @@ void Game::reshape(int width, int height) {
 */
 void Game::handleJoystick(unsigned int buttonMask, int x, int y, int z)
 {
+    updatePadState(buttonMask, x, y);
+
     // Stores the button state from the *last* time this function ran
     static unsigned int previousMask = 0;
 
@@ -162,10 +164,12 @@ void Game::handleJoystick(unsigned int buttonMask, int x, int y, int z)
     unsigned int newlyPressed = changed & buttonMask;
 
     // 3. Print the index of any newly pressed button
-    if (newlyPressed > 0) {
+    if (newlyPressed > 0) 
+    {
         printf("Button Pressed: ");
         for (int i = 0; i < 32; i++) {
-            if (newlyPressed & (1 << i)) {
+            if (newlyPressed & (1 << i)) 
+            {
                 printf("[%d] ", i);
             }
         }
@@ -174,6 +178,7 @@ void Game::handleJoystick(unsigned int buttonMask, int x, int y, int z)
 
     // Save the current state to use as history in the next poll cycle
     previousMask = buttonMask;
+
     glutPostRedisplay();
 }
 
