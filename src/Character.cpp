@@ -1,5 +1,9 @@
 #include "src/Character.hpp"
 
+// ============================================================
+// Constructor
+// ============================================================
+
 Character::Character()
     : currentAnim(nullptr),
       currentAttack(AttackType::LIGHT_PUNCH),
@@ -9,14 +13,20 @@ Character::Character()
       facingRight(true),
       currentState(CharacterState::IDLE),
       groundY(0.0f),
-      gravity(2200.0f),    // tune to taste
+      gravity(2200.0f),     // tune to taste
       jumpSpeed(1500.0f),   // tune to taste
       walkSpeed(300.0f),
       hitStunTimer(0.0f),
       health(100), maxHealth(100)
 {
-    setHurtboxes(80.0f, 180.0f, 90.0f, 110.0f); // sane defaults; override via setHurtboxes()
+    setHurtboxes(80.0f, 180.0f, 90.0f, 110.0f);
+    // sane defaults; override via setHurtboxes()
 }
+
+
+// ============================================================
+// Initialization / Asset Loading
+// ============================================================
 
 bool Character::init
 (
@@ -69,20 +79,33 @@ bool Character::loadAttack(
 {
     AttackData& atk = attacks[(int)type];
 
-    bool ok = atk.anim.loadFromFiles(folder, frameCount, frameDuration, false);
+    bool ok = atk.anim.loadFromFiles(
+        folder,
+        frameCount,
+        frameDuration,
+        false
+    );
+
     if (!ok) return false;
 
     atk.activeStartFrame = activeStartFrame;
     atk.activeEndFrame   = activeEndFrame;
     atk.damage            = damage;
-    atk.hitbox.offsetX    = hbOffsetX;
-    atk.hitbox.offsetY    = hbOffsetY;
-    atk.hitbox.width      = hbWidth;
-    atk.hitbox.height     = hbHeight;
-    atk.loaded             = true;
+
+    atk.hitbox.offsetX   = hbOffsetX;
+    atk.hitbox.offsetY   = hbOffsetY;
+    atk.hitbox.width     = hbWidth;
+    atk.hitbox.height    = hbHeight;
+
+    atk.loaded = true;
 
     return true;
 }
+
+
+// ============================================================
+// Character Position / Hurtboxes
+// ============================================================
 
 void Character::setGroundY(float ground)
 {
@@ -90,7 +113,12 @@ void Character::setGroundY(float ground)
     y = ground;
 }
 
-void Character::setHurtboxes(float standW, float standH, float crouchW, float crouchH)
+void Character::setHurtboxes(
+    float standW,
+    float standH,
+    float crouchW,
+    float crouchH
+)
 {
     standingHurtbox.offsetX = -standW / 2.0f;
     standingHurtbox.offsetY = 0.0f;
@@ -103,10 +131,16 @@ void Character::setHurtboxes(float standW, float standH, float crouchW, float cr
     crouchingHurtbox.height  = crouchH;
 }
 
+
+// ============================================================
+// Input
+// ============================================================
+
 void Character::handleInput(const InputManager& input)
 {
     // No player control while stunned or knocked out.
-    if (currentState == CharacterState::HIT_STUN || currentState == CharacterState::KO)
+    if (currentState == CharacterState::HIT_STUN ||
+        currentState == CharacterState::KO)
         return;
 
     // An attack is committed once started - ignore everything else
@@ -116,29 +150,55 @@ void Character::handleInput(const InputManager& input)
 
     bool onGround = (currentState != CharacterState::JUMPING);
 
-    // --- Attack triggers (grounded only) ---
+
+    // --------------------------------------------------------
+    // Attack triggers (grounded only)
+    // --------------------------------------------------------
+
     if (onGround)
     {
         AttackType triggered = AttackType::LIGHT_PUNCH;
         bool anyTriggered = false;
 
-        if      (input.isActionPressed(InputAction::CROSS))    { triggered = AttackType::LIGHT_PUNCH; anyTriggered = true; }
-        else if (input.isActionPressed(InputAction::CIRCLE))   { triggered = AttackType::HEAVY_PUNCH; anyTriggered = true; }
-        else if (input.isActionPressed(InputAction::SQUARE))   { triggered = AttackType::LIGHT_KICK;  anyTriggered = true; }
-        else if (input.isActionPressed(InputAction::TRIANGLE)) { triggered = AttackType::HEAVY_KICK;  anyTriggered = true; }
+        if (input.isActionPressed(InputAction::CROSS))
+        {
+            triggered = AttackType::LIGHT_PUNCH;
+            anyTriggered = true;
+        }
+        else if (input.isActionPressed(InputAction::CIRCLE))
+        {
+            triggered = AttackType::HEAVY_PUNCH;
+            anyTriggered = true;
+        }
+        else if (input.isActionPressed(InputAction::SQUARE))
+        {
+            triggered = AttackType::LIGHT_KICK;
+            anyTriggered = true;
+        }
+        else if (input.isActionPressed(InputAction::TRIANGLE))
+        {
+            triggered = AttackType::HEAVY_KICK;
+            anyTriggered = true;
+        }
 
         if (anyTriggered && attacks[(int)triggered].loaded)
         {
             currentAttack = triggered;
             hasHitThisAttack = false;
             velocityX = 0.0f;
+
             setState(CharacterState::ATTACKING);
             return;
         }
     }
 
-    // --- Jump ---
-    if (input.isActionPressed(InputAction::JUMP) && onGround &&
+
+    // --------------------------------------------------------
+    // Jump
+    // --------------------------------------------------------
+
+    if (input.isActionPressed(InputAction::JUMP) &&
+        onGround &&
         currentState != CharacterState::BLOCKING &&
         currentState != CharacterState::CROUCHING)
     {
@@ -147,7 +207,11 @@ void Character::handleInput(const InputManager& input)
         return;
     }
 
-    // --- Block (grounded only) ---
+
+    // --------------------------------------------------------
+    // Block (grounded only)
+    // --------------------------------------------------------
+
     if (onGround && input.isActionHeld(InputAction::BLOCK))
     {
         velocityX = 0.0f;
@@ -155,7 +219,11 @@ void Character::handleInput(const InputManager& input)
         return;
     }
 
-    // --- Crouch (grounded only) ---
+
+    // --------------------------------------------------------
+    // Crouch (grounded only)
+    // --------------------------------------------------------
+
     if (onGround && input.isActionHeld(InputAction::CROUCH))
     {
         velocityX = 0.0f;
@@ -163,20 +231,38 @@ void Character::handleInput(const InputManager& input)
         return;
     }
 
-    // --- Horizontal movement (grounded or airborne - basic air control) ---
+
+    // --------------------------------------------------------
+    // Horizontal movement
+    // Grounded or airborne - basic air control
+    // --------------------------------------------------------
+
     bool movingForward  = input.isActionHeld(InputAction::FORWARD);
     bool movingBackward = input.isActionHeld(InputAction::BACKWARD);
 
     if (movingForward && !movingBackward)
         velocityX = facingRight ? walkSpeed : -walkSpeed;
+
     else if (movingBackward && !movingForward)
         velocityX = facingRight ? -walkSpeed : walkSpeed;
+
     else
         velocityX = 0.0f;
 
     if (onGround)
-        setState(velocityX != 0.0f ? CharacterState::WALKING : CharacterState::IDLE);
+    {
+        setState(
+            velocityX != 0.0f
+                ? CharacterState::WALKING
+                : CharacterState::IDLE
+        );
+    }
 }
+
+
+// ============================================================
+// Facing
+// ============================================================
 
 void Character::faceToward(float opponentX)
 {
@@ -190,6 +276,11 @@ void Character::faceToward(float opponentX)
     facingRight = (opponentX >= x);
 }
 
+
+// ============================================================
+// Update / Physics / Animation
+// ============================================================
+
 void Character::update(float deltaTime)
 {
     if (!currentAnim)
@@ -197,39 +288,90 @@ void Character::update(float deltaTime)
 
     currentAnim->update(deltaTime);
 
+
+    // --------------------------------------------------------
+    // Jump physics
+    // --------------------------------------------------------
+
     if (currentState == CharacterState::JUMPING)
         velocityY -= gravity * deltaTime;
+
+
+    // --------------------------------------------------------
+    // Hit stun
+    // --------------------------------------------------------
 
     if (currentState == CharacterState::HIT_STUN)
     {
         hitStunTimer -= deltaTime;
+
         if (hitStunTimer <= 0.0f)
             setState(CharacterState::IDLE);
     }
 
-    if (currentState == CharacterState::ATTACKING && currentAnim->isFinished())
+
+    // --------------------------------------------------------
+    // Attack completion
+    // --------------------------------------------------------
+
+    if (currentState == CharacterState::ATTACKING &&
+        currentAnim->isFinished())
+    {
         setState(CharacterState::IDLE);
+    }
+
+
+    // --------------------------------------------------------
+    // Apply velocity
+    // --------------------------------------------------------
 
     x += velocityX * deltaTime;
     y += velocityY * deltaTime;
+
+
+    // --------------------------------------------------------
+    // Ground collision
+    // --------------------------------------------------------
 
     if (y <= groundY)
     {
         y = groundY;
         velocityY = 0.0f;
+
         if (currentState == CharacterState::JUMPING)
-            setState(velocityX != 0.0f ? CharacterState::WALKING : CharacterState::IDLE);
+        {
+            setState(
+                velocityX != 0.0f
+                    ? CharacterState::WALKING
+                    : CharacterState::IDLE
+            );
+        }
     }
+
+
+    // --------------------------------------------------------
+    // Sprite / Animation
+    // --------------------------------------------------------
 
     sprite.setTexture(currentAnim->getCurrentTexture());
     sprite.setPosition(x, y);
     sprite.setFlip(!facingRight);
 }
 
+
+// ============================================================
+// Rendering
+// ============================================================
+
 void Character::render()
 {
     sprite.draw();
 }
+
+
+// ============================================================
+// Character State
+// ============================================================
 
 void Character::setState(CharacterState newState)
 {
@@ -243,32 +385,60 @@ void Character::setState(CharacterState newState)
         case CharacterState::IDLE:
             currentAnim = &idleAnim;
             break;
+
         case CharacterState::WALKING:
-            currentAnim = (walkAnim.getFrameCount() > 0) ? &walkAnim : &idleAnim;
+            currentAnim =
+                (walkAnim.getFrameCount() > 0)
+                    ? &walkAnim
+                    : &idleAnim;
             break;
+
         case CharacterState::CROUCHING:
-            currentAnim = (crouchAnim.getFrameCount() > 0) ? &crouchAnim : &idleAnim;
+            currentAnim =
+                (crouchAnim.getFrameCount() > 0)
+                    ? &crouchAnim
+                    : &idleAnim;
             break;
+
         case CharacterState::JUMPING:
             currentAnim = &jumpAnim;
             break;
+
         case CharacterState::BLOCKING:
-            currentAnim = (blockAnim.getFrameCount() > 0) ? &blockAnim : &idleAnim;
+            currentAnim =
+                (blockAnim.getFrameCount() > 0)
+                    ? &blockAnim
+                    : &idleAnim;
             break;
+
         case CharacterState::ATTACKING:
             currentAnim = &attacks[(int)currentAttack].anim;
             break;
+
         case CharacterState::HIT_STUN:
             hitStunTimer = HIT_STUN_DURATION;
-            currentAnim = (hitAnim.getFrameCount() > 0) ? &hitAnim : &idleAnim;
+
+            currentAnim =
+                (hitAnim.getFrameCount() > 0)
+                    ? &hitAnim
+                    : &idleAnim;
             break;
+
         case CharacterState::KO:
-            currentAnim = (hitAnim.getFrameCount() > 0) ? &hitAnim : &idleAnim;
+            currentAnim =
+                (hitAnim.getFrameCount() > 0)
+                    ? &hitAnim
+                    : &idleAnim;
             break;
     }
 
     currentAnim->reset();
 }
+
+
+// ============================================================
+// Position / Facing / Scale
+// ============================================================
 
 void Character::setPosition(float px, float py)
 {
@@ -286,22 +456,39 @@ void Character::setScale(int scale)
     sprite.setScale(scale);
 }
 
+
+// ============================================================
+// Combat - Active Hitbox
+// ============================================================
+
 bool Character::hasActiveHitbox() const
 {
-    if (currentState != CharacterState::ATTACKING) return false;
-    if (hasHitThisAttack) return false; // already connected this swing - no double-hit
+    if (currentState != CharacterState::ATTACKING)
+        return false;
+
+    if (hasHitThisAttack)
+        return false; // already connected this swing - no double-hit
 
     const AttackData& atk = attacks[(int)currentAttack];
-    if (!atk.loaded) return false;
+
+    if (!atk.loaded)
+        return false;
 
     int frame = atk.anim.getCurrentFrameIndex();
-    return frame >= atk.activeStartFrame && frame <= atk.activeEndFrame;
+
+    return frame >= atk.activeStartFrame &&
+           frame <= atk.activeEndFrame;
 }
 
 AABB Character::getActiveHitboxWorld() const
 {
     const AttackData& atk = attacks[(int)currentAttack];
-    return atk.hitbox.toWorld(x, y, facingRight);
+
+    return atk.hitbox.toWorld(
+        x,
+        y,
+        facingRight
+    );
 }
 
 int Character::getActiveHitboxDamage() const
@@ -309,12 +496,29 @@ int Character::getActiveHitboxDamage() const
     return attacks[(int)currentAttack].damage;
 }
 
+
+// ============================================================
+// Combat - Hurtbox
+// ============================================================
+
 AABB Character::getHurtboxWorld() const
 {
-    const HitBox& hb = (currentState == CharacterState::CROUCHING)
-        ? crouchingHurtbox : standingHurtbox;
-    return hb.toWorld(x, y, facingRight);
+    const HitBox& hb =
+        (currentState == CharacterState::CROUCHING)
+            ? crouchingHurtbox
+            : standingHurtbox;
+
+    return hb.toWorld(
+        x,
+        y,
+        facingRight
+    );
 }
+
+
+// ============================================================
+// Combat - Blocking / Hit Registration
+// ============================================================
 
 bool Character::isBlocking() const
 {
@@ -326,15 +530,33 @@ void Character::registerHitLanded()
     hasHitThisAttack = true;
 }
 
+
+// ============================================================
+// Combat - Apply Damage
+// ============================================================
+
 void Character::applyHit(int damage, bool wasBlocked)
 {
-    if (currentState == CharacterState::KO) return;
+    if (currentState == CharacterState::KO)
+        return;
 
-    int finalDamage = wasBlocked ? (damage / 10) : damage; // heavy chip reduction while blocking
-    if (finalDamage < 1 && damage > 0) finalDamage = 1;
+    int finalDamage =
+        wasBlocked
+            ? (damage / 10)
+            : damage; // heavy chip reduction while blocking
+
+    if (finalDamage < 1 && damage > 0)
+        finalDamage = 1;
 
     health -= finalDamage;
-    if (health < 0) health = 0;
+
+    if (health < 0)
+        health = 0;
+
+
+    // --------------------------------------------------------
+    // KO
+    // --------------------------------------------------------
 
     if (health == 0)
     {
@@ -342,17 +564,52 @@ void Character::applyHit(int damage, bool wasBlocked)
         return;
     }
 
+
+    // --------------------------------------------------------
+    // Hit stun
+    // --------------------------------------------------------
+
     if (!wasBlocked)
     {
         velocityX = 0.0f;
         setState(CharacterState::HIT_STUN);
     }
-    // Blocked hits stay in BLOCKING state - no stun, just chip damage.
+
+    // Blocked hits stay in BLOCKING state -
+    // no stun, just chip damage.
 }
 
-float Character::getX() const { return x; }
-float Character::getY() const { return y; }
-int Character::getHealth() const { return health; }
-int Character::getMaxHealth() const { return maxHealth; }
-bool Character::isKO() const { return currentState == CharacterState::KO; }
-bool Character::getFacingRight() const { return facingRight; }
+
+// ============================================================
+// Getters
+// ============================================================
+
+float Character::getX() const
+{
+    return x;
+}
+
+float Character::getY() const
+{
+    return y;
+}
+
+int Character::getHealth() const
+{
+    return health;
+}
+
+int Character::getMaxHealth() const
+{
+    return maxHealth;
+}
+
+bool Character::isKO() const
+{
+    return currentState == CharacterState::KO;
+}
+
+bool Character::getFacingRight() const
+{
+    return facingRight;
+}
