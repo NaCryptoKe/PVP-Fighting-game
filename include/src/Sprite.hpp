@@ -18,11 +18,13 @@ public:
     Sprite();
     Sprite(TextureData texture);
 
+public:
     void setTexture(TextureData texture);   // takes texturedata struct from the texture
     void setPosition(float x, float y);
     void setScale(float scale);
     void setFlip(bool flip);
 
+public:
     void draw() const;  // delegates to the renderer::drawfighter internally
 };
 #endif // SPRITE_HPP
