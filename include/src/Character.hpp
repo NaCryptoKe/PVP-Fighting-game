@@ -42,8 +42,47 @@ struct AttackData
 class Character
 {
 private:
+    // -----------------------------------------
+    // Character position and info
+    // -----------------------------------------
+    float x;
+    float y;
+    float velocityX;
+    float velocityY;
+    bool facingRight;
+    CharacterState currentState;
+
+private:
+    // -----------------------------------------
+    // Character position and info
+    // -----------------------------------------
+    int health;
+    int maxHealth;
+
+private:
+    // -----------------------------------------
+    // Character movement
+    // -----------------------------------------
+    float groundY;
+    float gravity;
+    float jumpSpeed;
+    float walkSpeed;
+
+private:
+    // -----------------------------------------
+    // Character movement
+    // -----------------------------------------
+    HitBox standingHurtbox;
+    HitBox crouchingHurtbox;
+
+private:
+    // The image of the character 
     Sprite sprite;
 
+    // -----------------------------------------
+    // Animations
+    // -----------------------------------------
+    // All animation of the character
     Animation idleAnim;
     Animation jumpAnim;
     Animation walkAnim;
@@ -54,28 +93,13 @@ private:
     AttackData attacks[4]; // indexed by (int)AttackType
 
     Animation* currentAnim;
+
     AttackType currentAttack;
     bool hasHitThisAttack;
 
-    float x, y;
-    float velocityX, velocityY;
-    bool facingRight;
-
-    CharacterState currentState;
-
-    float groundY;
-    float gravity;
-    float jumpSpeed;
-    float walkSpeed;
-
+    
     float hitStunTimer;
     static constexpr float HIT_STUN_DURATION = 0.35f;
-
-    HitBox standingHurtbox;
-    HitBox crouchingHurtbox;
-
-    int health;
-    int maxHealth;
 
 public:
     Character();
@@ -92,6 +116,7 @@ public:
     bool loadCrouchAnimation(const char* folder, int frames);
     bool loadBlockAnimation(const char* folder, int frames);
     bool loadHitAnimation(const char* folder, int frames);
+    bool loadJumpAnimation(const char* folder, int frames);
 
     bool loadAttack(
         AttackType type,

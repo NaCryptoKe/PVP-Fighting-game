@@ -1,7 +1,7 @@
 #ifndef FONT_HPP
 #define FONT_HPP
 
-#include <GL/glut.h>
+#include "GL/glut.h"
 #include "stb/stb_truetype.h"
 
 struct Font {

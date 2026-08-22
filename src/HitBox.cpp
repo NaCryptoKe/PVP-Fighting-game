@@ -1,15 +1,20 @@
 #include "src/HitBox.hpp"
 
-AABB HitBox::toWorld(float footX, float footY, bool facingRight) const
-{
+AABB HitBox::toWorld(float footX, float footY, bool facingRight) const {
+    /*
+    * What the arguments are:
+    * footX the character's feet X coordinates
+    * footY the character's feet Y coordinates
+    * facingRight: whether it is facing right or left
+    */
     // Facing left mirrors the box around the foot anchor.
-    float ox = facingRight ? offsetX : -offsetX - width;
+    float worldOffsetX = facingRight ? offsetX : -offsetX - width;
 
     AABB box;
-    box.left   = footX + ox;
-    box.right  = box.left + width;
-    box.bottom = footY + offsetY;
-    box.top    = box.bottom + height;
+    box.left    = footX + worldOffsetX;
+    box.right   = box.left + width;
+    box.bottom  = footY + offsetY;
+    box.top     = box.bottom + height;
     return box;
 }
 

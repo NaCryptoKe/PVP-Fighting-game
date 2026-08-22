@@ -239,7 +239,15 @@ void Game::drawDebugBoxes(Character &c)
     );
 
     // Implement hitbox while active next
-    // TBD
+    if (c.hasActiveHitbox())
+    {
+        AABB atk = c.getActiveHitboxWorld();
+        Renderer::drawQuad(
+            atk.left, atk.bottom,
+            atk.right - atk.left, atk.top - atk.bottom,
+            1.0f, 0.0f, 0.0f, 0.04f
+        );
+    }
 }
 
 void Game::update()

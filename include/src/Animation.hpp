@@ -1,7 +1,7 @@
 #ifndef ANIMATION_HPP
 #define ANIMATION_HPP
 
-#include <GL/glut.h>
+#include "GL/glut.h"
 #include <vector>
 
 #include "src/Texture.hpp"
