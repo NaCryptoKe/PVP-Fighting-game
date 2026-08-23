@@ -3,9 +3,9 @@
 
 #include <unordered_map>
 #include <functional>
-#include "GL/glut.h"
 
-#include <stdio.h>
+#include "GL/glut.h"
+#include <SDL2/SDL.h>
 
 enum class InputAction
 {
@@ -13,38 +13,43 @@ enum class InputAction
     CROUCH,
     FORWARD,
     BACKWARD,
-    CROSS,
-    CIRCLE,
-    SQUARE,
-    TRIANGLE,
+    LIGHT_PUNCH,
+    LIGHT_KICK,
+    HARD_PUNCH,
+    HARD_KICK,
     BLOCK,
     ENHANCE
 };
 
-enum class KeyCode  // Actual key code the game supports
+enum class KeyCode
 {
-    // Player 1 default keys
+    // Player 1 keyboard
     W, S, D, A,
     K, L, J, I,
-    Space, Shift,
+    Space, U,
 
-    // Player 2 default keys - arrows are GLUT "special" keys, handled
-    // through a separate callback pair (see handleSpecialKeyDown/Up)
-    Up, Down, Left, Right,
-    Num1, Num2, Num3, Num4, Num5, Num6,
+    // SDL2 Gamepad
+    PadCross,
+    PadCircle,
+    PadSquare,
+    PadTriangle,
 
-    // PS4 Controller using glutJoystickFunc
-    PadCross, PadCircle, PadSquare, PadTriangle,
-    PadL1, PadR1, PadL2, PadR2, PadL3, PadR3,
-    PadStickUp, PadStickDown, PadStickLeft, PadStickRight
-};
+    PadL1,
+    PadR1,
+    PadL2,
+    PadR2,
+    PadL3,
+    PadR3,
 
-enum SpecialIndex 
-{ 
-    SPECIAL_UP = 0, 
-    SPECIAL_DOWN = 1, 
-    SPECIAL_LEFT = 2, 
-    SPECIAL_RIGHT = 3 
+    PadStickUp,
+    PadStickDown,
+    PadStickLeft,
+    PadStickRight,
+
+    PadDPADUp,
+    PadDPADDown,
+    PadDPADLeft,
+    PadDPADRight
 };
 
 struct InputState
@@ -57,39 +62,48 @@ struct InputState
 class InputManager
 {
 public:
-    // No hardcoded bindings in the constructor anymore - two instances
-    // with identical defaults would collide on the same physical keys.
-    // Call applyPlayer1Defaults() / applyPlayer2Defaults() explicitly,
-    // or setBinding() individually for custom control schemes.
     InputManager() = default;
 
     void setBinding(InputAction action, KeyCode key);
+
     void update(const std::function<bool(KeyCode)>& isRawKeyDown);
 
     bool isActionHeld(InputAction action) const;
     bool isActionPressed(InputAction action) const;
     bool isActionReleased(InputAction action) const;
 
-    void applyPlayer1Defaults(); // WASD + KLJI + Space + Shift
-    void applyPlayer2Defaults(); // Arrows + 1234 + 5 + 6
-    void applyPadDefaults();    // PS4 controller
+    void applyKeyboardDefaults();
+    void applyPadDefaults();
     
-
-private:
-    std::unordered_map<InputAction, KeyCode> bindings_;
-    std::unordered_map<InputAction, InputState> actionStates_;
+private: 
+    std::unordered_map<InputAction, KeyCode> bindings;
+    std::unordered_map<InputAction, InputState> actionStates;
 };
 
-// GLUT Static Input Callbacks - ASCII keys
+// ============================================================
+// GLUT Keyboard Input
+// ============================================================
+
 void handleKeyDown(unsigned char key, int x, int y);
 void handleKeyUp(unsigned char key, int x, int y);
 
-// GLUT Static Input Callbacks - non-ASCII "special" keys (arrows etc.)
-void handleSpecialKeyDown(int key, int x, int y);
-void handleSpecialKeyUp(int key, int x, int y);
-
 bool isGlutKeyDown(KeyCode code);
 
-void updatePadState(unsigned int buttonMask, int x, int y);
+// ============================================================
+// SDL2 Gamepad Input
+// ============================================================
+
+// Initialize SDL2's gamepad subsystem and connect to the first
+// available controller.
+bool initGamepad();
+
+// Close the currently connected gamepad and shut down SDL2.
+void shutdownGamepad();
+
+// Poll SDL2 events. Call this once per game frame.
+void updateGamepad();
+
+// Returns whether a particular SDL2 KeyCode is currently held.
+bool isGamepadKeyDown(KeyCode code);
 
 #endif // INPUT_HPP

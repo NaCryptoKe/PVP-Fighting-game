@@ -4,13 +4,14 @@
 #include "src/Input.hpp"
 
 #define MAJOR 0
-#define MINOR 4
+#define MINOR 5
 
 Game game;
 
 void display() { game.render(); }
 
-void update(int) {
+void update(int) 
+{
   game.update();
   glutPostRedisplay();
   glutTimerFunc(16, update, 0);
@@ -18,35 +19,35 @@ void update(int) {
 
 void reshape(int width, int height) { game.reshape(width, height); }
 
-void joystickCallback(unsigned int buttonMask, int x, int y, int z) {
-  game.handleJoystick(buttonMask, x, y, z);
+void joystickCallback(unsigned int buttonMask, int x, int y, int z) 
+{
+    game.handleJoystick(buttonMask, x, y, z);
 }
 
-int main(int argc, char **argv) {
-  const char *str = "2D Fighting Game V";
-  char title[128];
-  snprintf(title, sizeof(title), "%s%d.%d", str, MAJOR, MINOR);
+int main(int argc, char **argv) 
+{
+    const char *str = "2D Fighting Game V";
+    char title[128];
+    snprintf(title, sizeof(title), "%s%d.%d", str, MAJOR, MINOR);
 
-  glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-  glutInitWindowSize(800, 600);
-  glutInitWindowPosition(100, 100);
-  glutCreateWindow(title);
-  // glutFullScreen();
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitWindowSize(800, 600);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow(title);
+    // glutFullScreen();
 
-  game.init();
+    game.init();
 
-  glutDisplayFunc(display);
-  glutReshapeFunc(reshape);
-  glutKeyboardFunc(handleKeyDown);
-  glutKeyboardUpFunc(handleKeyUp);
-  glutSpecialFunc(handleSpecialKeyDown); // arrow keys for Player 2
-  glutSpecialUpFunc(handleSpecialKeyUp);
-  glutJoystickFunc(joystickCallback, 16);
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(handleKeyDown);
+    glutKeyboardUpFunc(handleKeyUp);
 
-  glutTimerFunc(0, update, 0);
+    glutTimerFunc(0, update, 0);
+    glutIgnoreKeyRepeat(1);
 
-  glutMainLoop();
+    glutMainLoop();
 
-  return 0;
+    return 0;
 }

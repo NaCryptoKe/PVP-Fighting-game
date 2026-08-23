@@ -1,195 +1,576 @@
 #include "src/Input.hpp"
+
 #include <cctype>
+#include <cstdio>
 
-static bool g_keys[256] = { false };        // ASCII keys, indexed by lowercase char
-                                            // Basically a LUT
-static bool g_shiftDown = false;
-static bool g_specialKeys[4] = { false, false, false, false };
+// ============================================================
+// GLUT Keyboard State
+// ============================================================
 
-// PS4 related
-static unsigned int g_padButtons = 0;
-static int g_padAxisX = 0;
-static int g_padAxisY = 0;
-
-static const int PAD_STICK_DEADZONE = 300;
-
-static const unsigned int PAD_BTN_CROSS    = 1u << 0;
-static const unsigned int PAD_BTN_CIRCLE   = 1u << 1;
-static const unsigned int PAD_BTN_TRIANGLE = 1u << 2;
-static const unsigned int PAD_BTN_SQUARE   = 1u << 3;
-static const unsigned int PAD_BTN_L1       = 1u << 4;
-static const unsigned int PAD_BTN_R1       = 1u << 5;
-static const unsigned int PAD_BTN_L2       = 1u << 6;
-static const unsigned int PAD_BTN_R2       = 1u << 7;
-static const unsigned int PAD_BTN_SHARE    = 1u << 8;
-static const unsigned int PAD_BTN_OPTION   = 1u << 9;
-static const unsigned int PAD_BTN_PS       = 1u << 10;
-static const unsigned int PAD_BTN_L3       = 1u << 11;
-static const unsigned int PAD_BTN_R3       = 1u << 12;
+static bool g_keys[256] = { false };
 
 void handleKeyDown(unsigned char key, int x, int y)
 {
-    g_keys[std::tolower(key)] = true;
-    g_shiftDown = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0;
+    (void)x;
+    (void)y;
+
+    key = static_cast<unsigned char>(
+        std::tolower(static_cast<unsigned char>(key))
+    );
+
+    g_keys[key] = true;
 }
 
 void handleKeyUp(unsigned char key, int x, int y)
 {
-    g_keys[std::tolower(key)] = false;
-    g_shiftDown = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0;
+    (void)x;
+    (void)y;
+
+    key = static_cast<unsigned char>(
+        std::tolower(static_cast<unsigned char>(key))
+    );
+
+    g_keys[key] = false;
 }
 
-void handleSpecialKeyDown(int key, int x, int y)
-{
-    switch (key)
-    {
-        case GLUT_KEY_UP:    g_specialKeys[SPECIAL_UP]    = true; break;
-        case GLUT_KEY_DOWN:  g_specialKeys[SPECIAL_DOWN]  = true; break;
-        case GLUT_KEY_LEFT:  g_specialKeys[SPECIAL_LEFT]  = true; break;
-        case GLUT_KEY_RIGHT: g_specialKeys[SPECIAL_RIGHT] = true; break;
-        default: break;
-    }
-}
+// ============================================================
+// GLUT Keyboard Query
+// ============================================================
 
-void handleSpecialKeyUp(int key, int x, int y)
-{
-    switch (key)
-    {
-        case GLUT_KEY_UP:    g_specialKeys[SPECIAL_UP]    = false; break;
-        case GLUT_KEY_DOWN:  g_specialKeys[SPECIAL_DOWN]  = false; break;
-        case GLUT_KEY_LEFT:  g_specialKeys[SPECIAL_LEFT]  = false; break;
-        case GLUT_KEY_RIGHT: g_specialKeys[SPECIAL_RIGHT] = false; break;
-        default: break;
-    }
-}
-
-// Takes keycode so that, and returns bool state of current state
 bool isGlutKeyDown(KeyCode code)
 {
     switch (code)
     {
-        case KeyCode::W:     return g_keys['w'];
-        case KeyCode::S:     return g_keys['s'];
-        case KeyCode::D:     return g_keys['d'];
-        case KeyCode::A:     return g_keys['a'];
-        case KeyCode::K:     return g_keys['k'];
-        case KeyCode::L:     return g_keys['l'];
-        case KeyCode::J:     return g_keys['j'];
-        case KeyCode::I:     return g_keys['i'];
-        case KeyCode::Space: return g_keys[' '];
-        case KeyCode::Shift: return g_shiftDown;
+        case KeyCode::W:
+            return g_keys['w'];
 
-        case KeyCode::Up:    return g_specialKeys[SPECIAL_UP];
-        case KeyCode::Down:  return g_specialKeys[SPECIAL_DOWN];
-        case KeyCode::Left:  return g_specialKeys[SPECIAL_LEFT];
-        case KeyCode::Right: return g_specialKeys[SPECIAL_RIGHT];
+        case KeyCode::S:
+            return g_keys['s'];
 
-        case KeyCode::Num1:  return g_keys['1'];
-        case KeyCode::Num2:  return g_keys['2'];
-        case KeyCode::Num3:  return g_keys['3'];
-        case KeyCode::Num4:  return g_keys['4'];
-        case KeyCode::Num5:  return g_keys['5'];
-        case KeyCode::Num6:  return g_keys['6'];
+        case KeyCode::D:
+            return g_keys['d'];
 
-        case KeyCode::PadCross:    return (g_padButtons & PAD_BTN_CROSS)    != 0;
-        case KeyCode::PadCircle:   return (g_padButtons & PAD_BTN_CIRCLE)   != 0;
-        case KeyCode::PadSquare:   return (g_padButtons & PAD_BTN_SQUARE)   != 0;
-        case KeyCode::PadTriangle: return (g_padButtons & PAD_BTN_TRIANGLE) != 0;
-        case KeyCode::PadL1:       return (g_padButtons & PAD_BTN_L1)       != 0;
-        case KeyCode::PadR1:       return (g_padButtons & PAD_BTN_R1)       != 0;
+        case KeyCode::A:
+            return g_keys['a'];
 
-        case KeyCode::PadStickUp:    return g_padAxisY >  PAD_STICK_DEADZONE;
-        case KeyCode::PadStickDown:  return g_padAxisY < -PAD_STICK_DEADZONE;
-        case KeyCode::PadStickLeft:  return g_padAxisX < -PAD_STICK_DEADZONE;
-        case KeyCode::PadStickRight: return g_padAxisX >  PAD_STICK_DEADZONE;
+        case KeyCode::K:
+            return g_keys['k'];
 
-        default: return false;
+        case KeyCode::L:
+            return g_keys['l'];
+
+        case KeyCode::J:
+            return g_keys['j'];
+
+        case KeyCode::I:
+            return g_keys['i'];
+
+        case KeyCode::Space:
+            return g_keys[' '];
+
+        case KeyCode::U:
+            return g_keys['u'];
+
+        default:
+            return false;
     }
 }
 
-// Creating a hasmap for bindings_
+// ============================================================
+// SDL2 Gamepad State
+// ============================================================
+
+static SDL_GameController* g_controller = nullptr;
+
+// Deadzone for analog sticks.
+//
+// SDL2 stick values normally range approximately from:
+//     -32768 -> full left/up
+//      0     -> center
+//     32767 -> full right/down
+//
+// We use a deadzone so tiny stick movements don't count as input.
+static constexpr Sint16 GAMEPAD_DEADZONE = 8000;
+
+// ============================================================
+// Initialize Gamepad
+// ============================================================
+
+bool initGamepad()
+{
+    // Initialize SDL2's game-controller subsystem.
+    if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0)
+    {
+        std::printf(
+            "SDL2: Failed to initialize game controller subsystem: %s\n",
+            SDL_GetError()
+        );
+
+        return false;
+    }
+
+    std::printf(
+        "SDL2: Found %d joystick(s).\n",
+        SDL_NumJoysticks()
+    );
+
+    // Look through all connected devices.
+    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+    {
+        // We specifically want a device SDL recognizes as a game
+        // controller rather than an arbitrary joystick.
+        if (!SDL_IsGameController(i))
+        {
+            continue;
+        }
+
+        g_controller = SDL_GameControllerOpen(i);
+
+        if (!g_controller)
+        {
+            std::printf(
+                "SDL2: Failed to open controller %d: %s\n",
+                i,
+                SDL_GetError()
+            );
+
+            continue;
+        }
+
+        std::printf(
+            "SDL2: Controller connected: %s\n",
+            SDL_GameControllerName(g_controller)
+        );
+
+        return true;
+    }
+
+    std::printf("SDL2: No compatible game controller found.\n");
+
+    return false;
+}
+
+// ============================================================
+// Shutdown Gamepad
+// ============================================================
+
+void shutdownGamepad()
+{
+    if (g_controller != nullptr)
+    {
+        SDL_GameControllerClose(g_controller);
+        g_controller = nullptr;
+    }
+
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+}
+
+// ============================================================
+// Update Gamepad
+// ============================================================
+
+void updateGamepad()
+{
+    if (g_controller == nullptr)
+    {
+        return;
+    }
+
+    SDL_Event event;
+
+    // Process all pending SDL events.
+    //
+    // We don't directly change our input state here.
+    // SDL maintains the current controller state for us.
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+            case SDL_CONTROLLERDEVICEADDED:
+            {
+                // If we don't currently have a controller,
+                // try opening the newly connected one.
+                if (g_controller == nullptr)
+                {
+                    if (SDL_IsGameController(event.cdevice.which))
+                    {
+                        g_controller =
+                            SDL_GameControllerOpen(event.cdevice.which);
+
+                        if (g_controller)
+                        {
+                            std::printf(
+                                "SDL2: Controller connected: %s\n",
+                                SDL_GameControllerName(g_controller)
+                            );
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            case SDL_CONTROLLERDEVICEREMOVED:
+            {
+                SDL_JoystickID removedID =
+                    event.cdevice.which;
+
+                SDL_Joystick* joystick =
+                    SDL_GameControllerGetJoystick(g_controller);
+
+                if (joystick != nullptr)
+                {
+                    SDL_JoystickID currentID =
+                        SDL_JoystickInstanceID(joystick);
+
+                    if (currentID == removedID)
+                    {
+                        std::printf(
+                            "SDL2: Controller disconnected.\n"
+                        );
+
+                        SDL_GameControllerClose(g_controller);
+                        g_controller = nullptr;
+                    }
+                }
+
+                break;
+            }
+
+            default:
+                break;
+        }
+    }
+
+    // Refresh SDL's internal controller state.
+    SDL_GameControllerUpdate();
+}
+
+// ============================================================
+// SDL2 Gamepad Query
+// ============================================================
+
+bool isGamepadKeyDown(KeyCode code)
+{
+    if (g_controller == nullptr)
+    {
+        return false;
+    }
+
+    switch (code)
+    {
+        // ----------------------------------------------------
+        // Face buttons
+        // ----------------------------------------------------
+
+        case KeyCode::PadCross:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_A
+            );
+
+        case KeyCode::PadCircle:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_B
+            );
+
+        case KeyCode::PadSquare:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_X
+            );
+
+        case KeyCode::PadTriangle:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_Y
+            );
+
+        // ----------------------------------------------------
+        // Shoulder buttons
+        // ----------------------------------------------------
+
+        case KeyCode::PadL1:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_LEFTSHOULDER
+            );
+
+        case KeyCode::PadR1:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_RIGHTSHOULDER
+            );
+
+        
+        // ----------------------------------------------------
+        // L2 / R2
+        // ----------------------------------------------------
+
+        case KeyCode::PadL2:
+        {
+            Sint16 value =
+                SDL_GameControllerGetAxis(
+                    g_controller,
+                    SDL_CONTROLLER_AXIS_TRIGGERLEFT
+                );
+
+            return value > GAMEPAD_DEADZONE;
+        }
+
+        case KeyCode::PadR2:
+        {
+            Sint16 value =
+                SDL_GameControllerGetAxis(
+                    g_controller,
+                    SDL_CONTROLLER_AXIS_TRIGGERRIGHT
+                );
+
+            return value > GAMEPAD_DEADZONE;
+        }
+
+        // ----------------------------------------------------
+        // L3 / R3
+        // ----------------------------------------------------
+
+        case KeyCode::PadL3:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_LEFTSTICK
+            );
+
+        case KeyCode::PadR3:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_RIGHTSTICK
+            );
+
+        // ----------------------------------------------------
+        // Left analog stick
+        // ----------------------------------------------------
+
+        case KeyCode::PadStickLeft:
+        {
+            Sint16 x =
+                SDL_GameControllerGetAxis(
+                    g_controller,
+                    SDL_CONTROLLER_AXIS_LEFTX
+                );
+
+            return x < -GAMEPAD_DEADZONE;
+        }
+
+        case KeyCode::PadStickRight:
+        {
+            Sint16 x =
+                SDL_GameControllerGetAxis(
+                    g_controller,
+                    SDL_CONTROLLER_AXIS_LEFTX
+                );
+
+            return x > GAMEPAD_DEADZONE;
+        }
+
+        case KeyCode::PadStickUp:
+        {
+            Sint16 y =
+                SDL_GameControllerGetAxis(
+                    g_controller,
+                    SDL_CONTROLLER_AXIS_LEFTY
+                );
+
+            // SDL's positive Y is normally DOWN.
+            // Therefore negative Y means UP.
+            return y < -GAMEPAD_DEADZONE;
+        }
+
+        case KeyCode::PadStickDown:
+        {
+            Sint16 y =
+                SDL_GameControllerGetAxis(
+                    g_controller,
+                    SDL_CONTROLLER_AXIS_LEFTY
+                );
+
+            return y > GAMEPAD_DEADZONE;
+        }
+
+        // ----------------------------------------------------
+        // D-pad
+        // ----------------------------------------------------
+
+        case KeyCode::PadDPADUp:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_DPAD_UP
+            );
+
+        case KeyCode::PadDPADDown:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_DPAD_DOWN
+            );
+
+        case KeyCode::PadDPADLeft:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_DPAD_LEFT
+            );
+
+        case KeyCode::PadDPADRight:
+            return SDL_GameControllerGetButton(
+                g_controller,
+                SDL_CONTROLLER_BUTTON_DPAD_RIGHT
+            );
+
+        // ----------------------------------------------------
+        // Keyboard keys are not handled here.
+        // ----------------------------------------------------
+
+        default:
+            return false;
+    }
+}
+
+// ============================================================
+// InputManager
+// ============================================================
+
 void InputManager::setBinding(InputAction action, KeyCode key)
 {
-    bindings_[action] = key;
-    actionStates_[action] = InputState{};
+    bindings[action] = key;
+    actionStates[action] = InputState{};
 }
 
-void InputManager::applyPlayer1Defaults()
+// ============================================================
+// Keyboard Defaults
+// ============================================================
+
+void InputManager::applyKeyboardDefaults()
 {
-    setBinding(InputAction::JUMP, KeyCode::W);
-    setBinding(InputAction::CROUCH, KeyCode::S);
-    setBinding(InputAction::FORWARD, KeyCode::D);
-    setBinding(InputAction::BACKWARD, KeyCode::A);
-    setBinding(InputAction::CROSS, KeyCode::K);
-    setBinding(InputAction::CIRCLE, KeyCode::L);
-    setBinding(InputAction::SQUARE, KeyCode::J);
-    setBinding(InputAction::TRIANGLE, KeyCode::I);
-    setBinding(InputAction::BLOCK, KeyCode::Space);
-    setBinding(InputAction::ENHANCE, KeyCode::Shift);
+    setBinding(InputAction::JUMP,        KeyCode::W);
+    setBinding(InputAction::CROUCH,      KeyCode::S);
+    setBinding(InputAction::FORWARD,     KeyCode::D);
+    setBinding(InputAction::BACKWARD,    KeyCode::A);
+
+    setBinding(InputAction::LIGHT_PUNCH, KeyCode::K);
+    setBinding(InputAction::LIGHT_KICK,  KeyCode::L);
+    setBinding(InputAction::HARD_PUNCH,  KeyCode::J);
+    setBinding(InputAction::HARD_KICK,   KeyCode::I);
+
+    setBinding(InputAction::BLOCK,       KeyCode::Space);
+    setBinding(InputAction::ENHANCE,     KeyCode::U);
 }
 
-void InputManager::applyPlayer2Defaults()
-{
-    setBinding(InputAction::JUMP, KeyCode::Up);
-    setBinding(InputAction::CROUCH, KeyCode::Down);
-    setBinding(InputAction::FORWARD, KeyCode::Right);
-    setBinding(InputAction::BACKWARD, KeyCode::Left);
-    setBinding(InputAction::CROSS, KeyCode::Num1);
-    setBinding(InputAction::CIRCLE, KeyCode::Num2);
-    setBinding(InputAction::SQUARE, KeyCode::Num3);
-    setBinding(InputAction::TRIANGLE, KeyCode::Num4);
-    setBinding(InputAction::BLOCK, KeyCode::Num5);
-    setBinding(InputAction::ENHANCE, KeyCode::Num6);
-}
+// ============================================================
+// Gamepad Defaults
+// ============================================================
 
 void InputManager::applyPadDefaults()
 {
-    setBinding(InputAction::JUMP,     KeyCode::PadStickUp);
-    setBinding(InputAction::CROUCH,   KeyCode::PadStickDown);
-    setBinding(InputAction::FORWARD,  KeyCode::PadStickRight);
-    setBinding(InputAction::BACKWARD, KeyCode::PadStickLeft);
-    setBinding(InputAction::CROSS,    KeyCode::PadCross);
-    setBinding(InputAction::CIRCLE,   KeyCode::PadCircle);
-    setBinding(InputAction::SQUARE,   KeyCode::PadSquare);
-    setBinding(InputAction::TRIANGLE, KeyCode::PadTriangle);
-    setBinding(InputAction::BLOCK,    KeyCode::PadL1);
-    setBinding(InputAction::ENHANCE,  KeyCode::PadR1);
+    setBinding(
+        InputAction::JUMP,
+        KeyCode::PadStickUp
+    );
+
+    setBinding(
+        InputAction::CROUCH,
+        KeyCode::PadStickDown
+    );
+
+    setBinding(
+        InputAction::FORWARD,
+        KeyCode::PadStickRight
+    );
+
+    setBinding(
+        InputAction::BACKWARD,
+        KeyCode::PadStickLeft
+    );
+
+    setBinding(
+        InputAction::LIGHT_PUNCH,
+        KeyCode::PadCross
+    );
+
+    setBinding(
+        InputAction::LIGHT_KICK,
+        KeyCode::PadCircle
+    );
+
+    setBinding(
+        InputAction::HARD_PUNCH,
+        KeyCode::PadSquare
+    );
+
+    setBinding(
+        InputAction::HARD_KICK,
+        KeyCode::PadTriangle
+    );
+
+    setBinding(
+        InputAction::BLOCK,
+        KeyCode::PadL1
+    );
+
+    setBinding(
+        InputAction::ENHANCE,
+        KeyCode::PadR1
+    );
 }
 
-void updatePadState(unsigned int buttonMask, int x, int y)
-{
-    g_padButtons = buttonMask;
-    g_padAxisX = x;
-    g_padAxisY = y;
-}
+// ============================================================
+// InputManager Update
+// ============================================================
 
-void InputManager::update(const std::function<bool(KeyCode)>& isRawKeyDown)
+void InputManager::update(
+    const std::function<bool(KeyCode)>& isRawKeyDown
+)
 {
-    for (auto& [action, key] : bindings_)
+    for (auto& [action, key] : bindings)
     {
-        auto& state = actionStates_[action];
+        auto& state = actionStates[action];
+
         bool isDown = isRawKeyDown(key);
 
-        state.wasPressedThisFrame = isDown && !state.isHeld;
-        state.wasReleasedThisFrame = !isDown && state.isHeld;
+        state.wasPressedThisFrame =
+            isDown && !state.isHeld;
+
+        state.wasReleasedThisFrame =
+            !isDown && state.isHeld;
+
         state.isHeld = isDown;
     }
 }
 
+// ============================================================
+// Input Queries
+// ============================================================
+
 bool InputManager::isActionHeld(InputAction action) const
 {
-    auto it = actionStates_.find(action);
-    return (it != actionStates_.end()) ? it->second.isHeld : false;
+    auto it = actionStates.find(action);
+
+    return (it != actionStates.end())
+        ? it->second.isHeld
+        : false;
 }
 
 bool InputManager::isActionPressed(InputAction action) const
 {
-    auto it = actionStates_.find(action);
-    return (it != actionStates_.end()) ? it->second.wasPressedThisFrame : false;
+    auto it = actionStates.find(action);
+
+    return (it != actionStates.end())
+        ? it->second.wasPressedThisFrame
+        : false;
 }
 
 bool InputManager::isActionReleased(InputAction action) const
 {
-    auto it = actionStates_.find(action);
-    return (it != actionStates_.end()) ? it->second.wasReleasedThisFrame : false;
+    auto it = actionStates.find(action);
+
+    return (it != actionStates.end())
+        ? it->second.wasReleasedThisFrame
+        : false;
 }

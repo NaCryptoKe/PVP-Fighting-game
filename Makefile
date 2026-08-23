@@ -11,7 +11,7 @@ else
 	EXE_EXT       :=
 	RM            := rm -f
 
-	GRAPHICS_LIBS := -lGL -lGLU -lglut
+	GRAPHICS_LIBS := -lGL -lGLU -lglut -lSDL2
 	LDFLAGS_OS    := -Wl,-rpath=libs
 endif
 
