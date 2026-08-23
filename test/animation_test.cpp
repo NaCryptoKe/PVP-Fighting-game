@@ -82,14 +82,65 @@ int main(int argc, char **argv)
     printf("Current texture ID: %u\n",
            anim.getCurrentTexture().id);
 
+
     // ----------------------------------------
-    // 3. Register callbacks
+    // 3. Test update()
+    // ----------------------------------------
+    printf("\n=== After Update Animation ===\n");
+    anim.update(0.05f);
+    printf("Frame index after 0.05: %d\n",
+           anim.getCurrentFrameIndex());
+    printf("Is animation finished: %s\n\n",
+           anim.isFinished() ? "YES" : "NO");   
+    anim.update(0.05f);
+    printf("Frame index after 0.10: %d\n",
+           anim.getCurrentFrameIndex());
+    printf("Is animation finished: %s\n\n",
+           anim.isFinished() ? "YES" : "NO");       
+    anim.update(0.05f);
+    printf("Frame index after 0.15: %d\n",
+           anim.getCurrentFrameIndex());
+    printf("Is animation finished: %s\n\n",
+           anim.isFinished() ? "YES" : "NO");       
+    anim.update(0.05f);
+    printf("Frame index after 0.20: %d\n",
+           anim.getCurrentFrameIndex());
+    printf("Is animation finished: %s\n\n",
+           anim.isFinished() ? "YES" : "NO");
+           
+    // For loop till end of the animation
+    for (float i = 0; i < 0.36f; i += 0.05f)
+    {
+       anim.update(0.05f);
+       printf("Frame index after %.2f: %d\n", i + 0.20f,
+           anim.getCurrentFrameIndex());
+       printf("Is animation finished: %s\n\n",
+           anim.isFinished() ? "YES" : "NO");
+    }
+
+    // ----------------------------------------
+    // 4. Animation that loops
+    // ----------------------------------------
+    printf("\n=== After Looping Animation ===\n"); 
+    anim.setLooping(true);
+    anim.reset();
+    for (float i = 0; i < 1.0f; i += 0.05f)
+    {
+       anim.update(0.05f);
+       printf("Frame index after %.2f: %d\n", i + 0.20f,
+           anim.getCurrentFrameIndex());
+       printf("Is animation finished: %s\n\n",
+           anim.isFinished() ? "YES" : "NO");
+    }
+
+    // ----------------------------------------
+    // 5. Register callbacks
     // ----------------------------------------
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
 
     // ----------------------------------------
-    // 4. Start event loop
+    // 6. Start event loop
     // ----------------------------------------
     glutMainLoop();
 
