@@ -23,7 +23,7 @@ enum class InputAction
 
 enum class KeyCode
 {
-    // Player 1 keyboard
+    // keyboard
     W, S, D, A,
     K, L, J, I,
     Space, U,

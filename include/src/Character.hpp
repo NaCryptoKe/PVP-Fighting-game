@@ -1,11 +1,12 @@
 #ifndef CHARACTER_HPP
 #define CHARACTER_HPP
 
-#include "src/Renderer.hpp"
 #include "src/Sprite.hpp"
 #include "src/Animation.hpp"
 #include "src/Input.hpp"
 #include "src/HitBox.hpp"
+
+#include <unordered_map>
 
 enum class CharacterState
 {
@@ -70,10 +71,13 @@ private:
 
 private:
     // -----------------------------------------
-    // Character hurtboxes
+    // Character hurtboxes/hitbox et.c
     // -----------------------------------------
-    HitBox standingHurtbox;
+    HitBox standingHurtbox;     // Vulnerable areas to be hit
     HitBox crouchingHurtbox;
+
+    HitBox hitBox;
+    HitBox blockBox;
 
 private:
     // -----------------------------------------
@@ -86,26 +90,17 @@ private:
     // -----------------------------------------
     // Character animations
     // -----------------------------------------
-    // All animation of the character
-    Animation idleAnim;
-    Animation jumpAnim;
-    Animation walkAnim;
-    Animation crouchAnim;
-    Animation blockAnim;
-    Animation hitAnim;
-
-    AttackData attacks[4]; // indexed by (int)AttackType
-
-    Animation* currentAnim;
+    std::unordered_map<CharacterState, Animation> animations;
+    std::unordered_map<AttackType, AttackData> attacks;
 
 private:
     // -----------------------------------------
     // Character combat
     // -----------------------------------------
     AttackType currentAttack;
-    bool hasHitThisAttack;
+    bool hasHitThisAttack;  // Has the attack connected with the opponent
 
-    float hitStunTimer;
+    float hitStunTimer; // The amount of time left for the stun animation to leave
     static constexpr float HIT_STUN_DURATION = 0.35f;
 
 public:
@@ -118,28 +113,23 @@ public:
     // -----------------------------------------
     // Initialization
     // -----------------------------------------
-    bool init(
-        const char* idleFolder, int idleFrames,
-        const char* jumpFolder, int jumpFrames
-    );
+    bool init();
 
 public:
     // -----------------------------------------
     // Animation loading
     // -----------------------------------------
-    // All optional - if never loaded, that state/attack falls back to
-    // idle (walk/crouch/block) or simply does nothing when triggered
-    // (attacks), same graceful-degradation pattern used everywhere.
-
-    bool loadWalkAnimation(const char* folder, int frames);
-    bool loadCrouchAnimation(const char* folder, int frames);
-    bool loadBlockAnimation(const char* folder, int frames);
-    bool loadHitAnimation(const char* folder, int frames);
-    bool loadJumpAnimation(const char* folder, int frames);
+    bool loadIdleAnimation(const char* folder, int frames, float duration);
+    bool loadWalkAnimation(const char* folder, int frames, float duration);
+    bool loadJumpAnimation(const char* folder, int frames, float duration);
+    bool loadCrouchAnimation(const char* folder, int frames, float duration);
+    bool loadBlockAnimation(const char* folder, int frames, float duration);
+    bool loadHitStunAnimation(const char* folder, int frames, float duration);
+    bool loadKOAnimation(const char* folder, int frames, float duration);
 
     bool loadAttack(
         AttackType type,
-        const char* folder, int frameCount, float frameDuration,
+        const char* folder, int frames, float duration,
         int activeStartFrame, int activeEndFrame,
         int damage,
         float hbOffsetX, float hbOffsetY, float hbWidth, float hbHeight
@@ -182,7 +172,7 @@ public:
     void setPosition(float px, float py);
     void setFacing(bool right);
 
-    void setScale(int scale);
+    void setScale(float scale);
 
 public:
     // -----------------------------------------

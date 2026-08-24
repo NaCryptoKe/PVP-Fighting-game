@@ -18,6 +18,8 @@ void handleKeyDown(unsigned char key, int x, int y)
         std::tolower(static_cast<unsigned char>(key))
     );
 
+    printf("%c\n", key);
+
     g_keys[key] = true;
 }
 
