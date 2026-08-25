@@ -19,7 +19,7 @@ public:
     void setViewportSize(float width, float height);
     void drawHealthBar(float x, float y, float height, bool flipped);
     void drawWinnerMessage(Font font, const char *text);
-    void drawTimer(Font font, int timer);
+    void drawTimer(Font font, int timer, float y);
 };
 
 #endif // HUD_HPP

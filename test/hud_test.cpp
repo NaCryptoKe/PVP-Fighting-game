@@ -16,6 +16,7 @@ void display()
     glLoadIdentity();
     hud.drawHealthBar(50.0f, 50.0f, 50.0f, false);
     hud.drawWinnerMessage(font, character);
+    hud.drawTimer(font, 56, 200.0f);
 
     glutSwapBuffers();
 }

@@ -2,6 +2,7 @@
 #include "src/Renderer.hpp"
 
 #include <stdio.h>
+#include <string>
 
 HUD::HUD(Character& PLAYER, float WIDTH)
     : player(PLAYER),
@@ -109,3 +110,13 @@ void HUD::drawWinnerMessage(
     );
 }
 
+void HUD::drawTimer(Font font, int timer, float y)
+{
+    std::string timerText = std::to_string(timer);
+
+    float timerWidth = font.getTextWidth(timerText.c_str());
+    
+    float timerX = (viewportWidth - timerWidth) / 2.0f;
+
+    font.renderText(timerText.c_str(), timerX, viewportHeight - y);
+}
