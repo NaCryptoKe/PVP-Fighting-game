@@ -76,8 +76,9 @@ animation_test_DEPS   := Animation Texture
 input_test_DEPS         := Input
 character_test_DEPS   := Character Sprite Animation Texture Input HitBox Renderer
 hud_test_DEPS			:= Character HUD Sprite Animation Texture Input HitBox Renderer Font HitBox
+round_timer_test_DEPS			:= RoundTimer
 
-TEST_NAMES := texture_test hitbox_test renderer_test font_test sprite_test animation_test input_test character_test hud_test
+TEST_NAMES := texture_test hitbox_test renderer_test font_test sprite_test animation_test input_test character_test hud_test round_timer_test
 
 $(TEST_BUILD_DIR):
 	mkdir -p $(TEST_BUILD_DIR)
