@@ -375,7 +375,7 @@ void Character::update(float deltaTime)
     // Apply velocity
     // --------------------------------------------------------
 
-    // x += velocityX * deltaTime;
+    x += velocityX * deltaTime;
     y += velocityY * deltaTime;
 
 
@@ -585,53 +585,53 @@ void Character::setScale(float scale)
 // }
 
 
-// // ============================================================
-// // Combat - Apply Damage
-// // ============================================================
+// ============================================================
+// Combat - Apply Damage
+// ============================================================
 
-// void Character::applyHit(int damage, bool wasBlocked)
-// {
-//     if (currentState == CharacterState::KO)
-//         return;
+void Character::applyHit(int damage, bool wasBlocked)
+{
+    if (currentState == CharacterState::KO)
+        return;
 
-//     int finalDamage =
-//         wasBlocked
-//             ? (damage / 10)
-//             : damage; // heavy chip reduction while blocking
+    int finalDamage =
+        wasBlocked
+            ? (damage / 10)
+            : damage; // heavy chip reduction while blocking
 
-//     if (finalDamage < 1 && damage > 0)
-//         finalDamage = 1;
+    if (finalDamage < 1 && damage > 0)
+        finalDamage = 1;
 
-//     health -= finalDamage;
+    health -= finalDamage;
 
-//     if (health < 0)
-//         health = 0;
-
-
-//     // --------------------------------------------------------
-//     // KO
-//     // --------------------------------------------------------
-
-//     if (health == 0)
-//     {
-//         setState(CharacterState::KO);
-//         return;
-//     }
+    if (health < 0)
+        health = 0;
 
 
-//     // --------------------------------------------------------
-//     // Hit stun
-//     // --------------------------------------------------------
+    // --------------------------------------------------------
+    // KO
+    // --------------------------------------------------------
 
-//     if (!wasBlocked)
-//     {
-//         velocityX = 0.0f;
-//         setState(CharacterState::HIT_STUN);
-//     }
+    if (health == 0)
+    {
+        setState(CharacterState::KO);
+        return;
+    }
 
-//     // Blocked hits stay in BLOCKING state -
-//     // no stun, just chip damage.
-// }
+
+    // --------------------------------------------------------
+    // Hit stun
+    // --------------------------------------------------------
+
+    if (!wasBlocked)
+    {
+        velocityX = 0.0f;
+        setState(CharacterState::HIT_STUN);
+    }
+
+    // Blocked hits stay in BLOCKING state -
+    // no stun, just chip damage.
+}
 
 
 // // ============================================================
@@ -648,15 +648,15 @@ void Character::setScale(float scale)
 //     return y;
 // }
 
-// int Character::getHealth() const
-// {
-//     return health;
-// }
+int Character::getHealth() const
+{
+    return health;
+}
 
-// int Character::getMaxHealth() const
-// {
-//     return maxHealth;
-// }
+int Character::getMaxHealth() const
+{
+    return maxHealth;
+}
 
 // bool Character::isKO() const
 // {

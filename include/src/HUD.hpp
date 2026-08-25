@@ -7,14 +7,18 @@
 class HUD
 {
 private:
-    Character player;
+    Character& player;
+
     float width;
+    float viewportWidth;
+    float viewportHeight;
 
 public:
-    HUD(Character PLAYER, float WIDTH);
+    HUD(Character &PLAYER, float WIDTH);
 
+    void setViewportSize(float width, float height);
     void drawHealthBar(float x, float y, float height, bool flipped);
-    void drawWinnerMessage(Font font, char *text);
+    void drawWinnerMessage(Font font, const char *text);
     void drawTimer(Font font, int timer);
 };
 
