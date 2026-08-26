@@ -245,7 +245,6 @@ void Character::handleInput(const InputManager& input)
     bool onGround = (y <= groundY);
 
 
-    printf("Velocity Y -> %.2f\n", velocityY);
     // --------------------------------------------------------
     // JUMP
     // --------------------------------------------------------
@@ -321,23 +320,25 @@ void Character::handleInput(const InputManager& input)
             setState(CharacterState::IDLE);
         }
     }
+
+    // Attacks for later
 }
 
-// // ============================================================
-// // Facing
-// // ============================================================
+// ============================================================
+// Facing
+// ============================================================
 
-// void Character::faceToward(float opponentX)
-// {
-//     // Don't flip mid-attack/hitstun/KO - would desync the hitbox
-//     // position and look glitchy.
-//     if (currentState == CharacterState::ATTACKING ||
-//         currentState == CharacterState::HIT_STUN ||
-//         currentState == CharacterState::KO)
-//         return;
+void Character::faceToward(float opponentX)
+{
+    // Don't flip mid-attack/hitstun/KO - would desync the hitbox
+    // position and look glitchy.
+    if (currentState == CharacterState::ATTACKING ||
+        currentState == CharacterState::HIT_STUN ||
+        currentState == CharacterState::KO)
+        return;
 
-//     facingRight = (opponentX >= x);
-// }
+    facingRight = (opponentX >= x);
+}
 
 
 // ============================================================
@@ -430,20 +431,6 @@ void Character::update(float deltaTime)
 
 void Character::render()
 {
-    /*
-     * Later this function should handle
-        Character::render()
-            
-        make sure sprite has current animation frame
-            
-        set position
-            
-        set scale
-            
-        set facing/flip
-            
-        sprite.draw()
-    */
     sprite.draw();
 }
 
@@ -511,78 +498,78 @@ void Character::setScale(float scale)
 }
 
 
-// // ============================================================
-// // Combat - Active Hitbox
-// // ============================================================
+// ============================================================
+// Combat - Active Hitbox
+// ============================================================
 
-// bool Character::hasActiveHitbox() const
-// {
-//     if (currentState != CharacterState::ATTACKING)
-//         return false;
+bool Character::hasActiveHitbox() const
+{
+    if (currentState != CharacterState::ATTACKING)
+        return false;
 
-//     if (hasHitThisAttack)
-//         return false; // already connected this swing - no double-hit
+    if (hasHitThisAttack)
+        return false; // already connected this swing - no double-hit
 
-//     const AttackData& atk = attacks[(int)currentAttack];
+    const AttackData& atk = attacks.at(currentAttack);
 
-//     if (!atk.loaded)
-//         return false;
+    if (!atk.loaded)
+        return false;
 
-//     int frame = atk.anim.getCurrentFrameIndex();
+    int frame = atk.anim.getCurrentFrameIndex();
 
-//     return frame >= atk.activeStartFrame &&
-//            frame <= atk.activeEndFrame;
-// }
+    return frame >= atk.activeStartFrame &&
+           frame <= atk.activeEndFrame;
+}
 
-// AABB Character::getActiveHitboxWorld() const
-// {
-//     const AttackData& atk = attacks[(int)currentAttack];
+AABB Character::getActiveHitboxWorld() const
+{
+    const AttackData& atk = attacks.at(currentAttack);
 
-//     return atk.hitbox.toWorld(
-//         x,
-//         y,
-//         facingRight
-//     );
-// }
+    return atk.hitbox.toWorld(
+        x,
+        y,
+        facingRight
+    );
+}
 
-// int Character::getActiveHitboxDamage() const
-// {
-//     return attacks[(int)currentAttack].damage;
-// }
-
-
-// // ============================================================
-// // Combat - Hurtbox
-// // ============================================================
-
-// AABB Character::getHurtboxWorld() const
-// {
-//     const HitBox& hb =
-//         (currentState == CharacterState::CROUCHING)
-//             ? crouchingHurtbox
-//             : standingHurtbox;
-
-//     return hb.toWorld(
-//         x,
-//         y,
-//         facingRight
-//     );
-// }
+int Character::getActiveHitboxDamage() const
+{
+    return attacks.at(currentAttack).damage;
+}
 
 
-// // ============================================================
-// // Combat - Blocking / Hit Registration
-// // ============================================================
+// ============================================================
+// Combat - Hurtbox
+// ============================================================
 
-// bool Character::isBlocking() const
-// {
-//     return currentState == CharacterState::BLOCKING;
-// }
+AABB Character::getHurtboxWorld() const
+{
+    const HitBox& hb =
+        (currentState == CharacterState::CROUCHING)
+            ? crouchingHurtbox
+            : standingHurtbox;
 
-// void Character::registerHitLanded()
-// {
-//     hasHitThisAttack = true;
-// }
+    return hb.toWorld(
+        x,
+        y,
+        facingRight
+    );
+}
+
+
+// ============================================================
+// Combat - Blocking / Hit Registration
+// ============================================================
+
+bool Character::isBlocking() const
+{
+    return currentState == CharacterState::BLOCKING;
+}
+
+void Character::registerHitLanded()
+{
+    hasHitThisAttack = true;
+}
 
 
 // ============================================================
@@ -634,19 +621,19 @@ void Character::applyHit(int damage, bool wasBlocked)
 }
 
 
-// // ============================================================
-// // Getters
-// // ============================================================
+// ============================================================
+// Getters
+// ============================================================
 
-// float Character::getX() const
-// {
-//     return x;
-// }
+float Character::getX() const
+{
+    return x;
+}
 
-// float Character::getY() const
-// {
-//     return y;
-// }
+float Character::getY() const
+{
+    return y;
+}
 
 int Character::getHealth() const
 {
@@ -658,12 +645,12 @@ int Character::getMaxHealth() const
     return maxHealth;
 }
 
-// bool Character::isKO() const
-// {
-//     return currentState == CharacterState::KO;
-// }
+bool Character::isKO() const
+{
+    return currentState == CharacterState::KO;
+}
 
-// bool Character::getFacingRight() const
-// {
-//     return facingRight;
-// }
+bool Character::getFacingRight() const
+{
+    return facingRight;
+}

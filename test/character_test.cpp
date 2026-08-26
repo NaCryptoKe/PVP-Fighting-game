@@ -7,14 +7,23 @@
 Character player;
 InputManager input;
 
+
 // ============================================================
 // Display
 // ============================================================
 
 void display()
 {
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(
+        0.08f,
+        0.08f,
+        0.12f,
+        1.0f
+    );
+
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glLoadIdentity();
 
     player.render();
 
@@ -28,18 +37,75 @@ void display()
 
 void reshape(int width, int height)
 {
-    glViewport(0, 0, width, height);
+    if (height == 0)
+        height = 1;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    const float targetAspect =
+        1920.0f / 1080.0f;
 
-    glOrtho(
-        0.0f, 800.0f,
-        0.0f, 600.0f,
-        -1.0f, 1.0f
+    float windowAspect =
+        static_cast<float>(width) /
+        static_cast<float>(height);
+
+    int viewportX = 0;
+    int viewportY = 0;
+
+    int viewportWidth = width;
+    int viewportHeight = height;
+
+
+    // --------------------------------------------------------
+    // Letterboxing / pillarboxing
+    // --------------------------------------------------------
+
+    if (windowAspect > targetAspect)
+    {
+        viewportWidth =
+            static_cast<int>(height * targetAspect);
+
+        viewportX =
+            (width - viewportWidth) / 2;
+    }
+    else
+    {
+        viewportHeight =
+            static_cast<int>(width / targetAspect);
+
+        viewportY =
+            (height - viewportHeight) / 2;
+    }
+
+
+    glViewport(
+        viewportX,
+        viewportY,
+        viewportWidth,
+        viewportHeight
     );
 
+
+    // --------------------------------------------------------
+    // Projection
+    // --------------------------------------------------------
+
+    glMatrixMode(GL_PROJECTION);
+
+    glLoadIdentity();
+
+    gluOrtho2D(
+        0.0,
+        1920.0,
+        0.0,
+        1080.0
+    );
+
+
+    // --------------------------------------------------------
+    // Model view
+    // --------------------------------------------------------
+
     glMatrixMode(GL_MODELVIEW);
+
     glLoadIdentity();
 }
 
@@ -52,20 +118,40 @@ void update(int value)
 {
     (void)value;
 
-    // Approximately 60 FPS.
-    const float deltaTime = 1.0f / 60.0f;
+    const float deltaTime =
+        1.0f / 60.0f;
+
+
+    // --------------------------------------------------------
+    // Update input
+    // --------------------------------------------------------
 
     input.update([](KeyCode key)
     {
         return isGlutKeyDown(key);
     });
 
+
+    // --------------------------------------------------------
+    // Character
+    // --------------------------------------------------------
+
     player.handleInput(input);
+
     player.update(deltaTime);
+
+
+    // --------------------------------------------------------
+    // Request another frame
+    // --------------------------------------------------------
 
     glutPostRedisplay();
 
-    glutTimerFunc(16, update, 0);
+    glutTimerFunc(
+        16,
+        update,
+        0
+    );
 }
 
 
@@ -76,7 +162,7 @@ void update(int value)
 int main(int argc, char** argv)
 {
     // ========================================================
-    // 1. Initialize GLUT
+    // 1. GLUT initialization
     // ========================================================
 
     glutInit(&argc, argv);
@@ -86,84 +172,141 @@ int main(int argc, char** argv)
         GLUT_DOUBLE
     );
 
-    glutInitWindowSize(800, 600);
+    glutInitWindowSize(
+        1280,
+        720
+    );
 
-    glutCreateWindow("Character Test");
+    glutCreateWindow(
+        "Character Test"
+    );
+
+
+    // ========================================================
+    // 2. Input initialization
+    // ========================================================
 
     input.applyKeyboardDefaults();
 
+
     // ========================================================
-    // 2. Test init() BEFORE loading IDLE
+    // 3. Test header
     // ========================================================
 
-    printf("============================================================\n");
-    printf("                    CHARACTER TEST\n");
-    printf("============================================================\n");
+    printf(
+        "============================================================\n"
+    );
 
-    printf("\n=== Test 1: init() before IDLE is loaded ===\n");
+    printf(
+        "                    CHARACTER TEST\n"
+    );
 
-    bool initialized = player.init();
+    printf(
+        "============================================================\n"
+    );
+
+
+    // ========================================================
+    // TEST 1
+    // init() before IDLE
+    // ========================================================
+
+    printf(
+        "\n=== Test 1: init() before IDLE is loaded ===\n"
+    );
+
+    bool initialized =
+        player.init();
 
     printf(
         "Expected: FAILURE\n"
         "Actual:   %s\n",
-        initialized ? "SUCCESS" : "FAILURE"
+        initialized
+            ? "SUCCESS"
+            : "FAILURE"
     );
 
 
     // ========================================================
-    // 3. Load IDLE
+    // TEST 2
+    // Load IDLE
     // ========================================================
 
-    printf("\n=== Test 2: Load IDLE animation ===\n");
+    printf(
+        "\n=== Test 2: Load IDLE animation ===\n"
+    );
 
     const int idleFrames = 1;
 
-    bool idle = player.loadIdleAnimation(
-        "assets/test/",
-        idleFrames,
-        0.16f
+    bool idle =
+        player.loadIdleAnimation(
+            "assets/test/",
+            idleFrames,
+            0.16f
+        );
+
+    printf(
+        "Frame count: %d\n",
+        idleFrames
     );
 
-    printf("Frame count: %d\n", idleFrames);
-    printf("Loaded: %s\n", idle ? "YES" : "NO");
+    printf(
+        "Loaded: %s\n",
+        idle
+            ? "YES"
+            : "NO"
+    );
 
 
     if (!idle)
     {
-        printf("\nERROR: IDLE animation failed to load.\n");
+        printf(
+            "\nERROR: IDLE animation failed.\n"
+        );
+
         return 1;
     }
 
 
     // ========================================================
-    // 4. Test init() AFTER loading IDLE
+    // TEST 3
+    // init() after IDLE
     // ========================================================
 
-    printf("\n=== Test 3: init() after IDLE is loaded ===\n");
+    printf(
+        "\n=== Test 3: init() after IDLE is loaded ===\n"
+    );
 
-    initialized = player.init();
+    initialized =
+        player.init();
 
     printf(
         "Expected: SUCCESS\n"
         "Actual:   %s\n",
-        initialized ? "SUCCESS" : "FAILURE"
+        initialized
+            ? "SUCCESS"
+            : "FAILURE"
     );
+
 
     if (!initialized)
     {
-        printf("\nERROR: Character initialization failed.\n");
+        printf(
+            "\nERROR: Character initialization failed.\n"
+        );
+
         return 1;
     }
 
 
     // ========================================================
-    // 5. Load remaining animations
-    //
-    // Frame counts intentionally differ between 3 and 10.
+    // TEST 4
+    // Load all character animations
     // ========================================================
 
-    printf("\n=== Test 4: Load Character Animations ===\n");
+    printf(
+        "\n=== Test 4: Load Character Animations ===\n"
+    );
 
 
     // --------------------------------------------------------
@@ -172,11 +315,12 @@ int main(int argc, char** argv)
 
     int walkFrames = 2;
 
-    bool walk = player.loadWalkAnimation(
-        "assets/test/",
-        walkFrames,
-        0.12f
-    );
+    bool walk =
+        player.loadWalkAnimation(
+            "assets/test/",
+            walkFrames,
+            0.12f
+        );
 
     printf(
         "WALKING    -> %d frames -> %s\n",
@@ -191,11 +335,12 @@ int main(int argc, char** argv)
 
     int jumpFrames = 3;
 
-    bool jump = player.loadJumpAnimation(
-        "assets/test/",
-        jumpFrames,
-        0.10f
-    );
+    bool jump =
+        player.loadJumpAnimation(
+            "assets/test/",
+            jumpFrames,
+            0.10f
+        );
 
     printf(
         "JUMPING    -> %d frames -> %s\n",
@@ -210,11 +355,12 @@ int main(int argc, char** argv)
 
     int crouchFrames = 4;
 
-    bool crouch = player.loadCrouchAnimation(
-        "assets/test/",
-        crouchFrames,
-        0.14f
-    );
+    bool crouch =
+        player.loadCrouchAnimation(
+            "assets/test/",
+            crouchFrames,
+            0.14f
+        );
 
     printf(
         "CROUCHING  -> %d frames -> %s\n",
@@ -229,11 +375,12 @@ int main(int argc, char** argv)
 
     int blockFrames = 5;
 
-    bool block = player.loadBlockAnimation(
-        "assets/test/",
-        blockFrames,
-        0.11f
-    );
+    bool block =
+        player.loadBlockAnimation(
+            "assets/test/",
+            blockFrames,
+            0.11f
+        );
 
     printf(
         "BLOCKING   -> %d frames -> %s\n",
@@ -248,11 +395,12 @@ int main(int argc, char** argv)
 
     int hitStunFrames = 6;
 
-    bool hitStun = player.loadHitStunAnimation(
-        "assets/test/",
-        hitStunFrames,
-        0.08f
-    );
+    bool hitStun =
+        player.loadHitStunAnimation(
+            "assets/test/",
+            hitStunFrames,
+            0.08f
+        );
 
     printf(
         "HIT_STUN   -> %d frames -> %s\n",
@@ -267,11 +415,12 @@ int main(int argc, char** argv)
 
     int koFrames = 7;
 
-    bool ko = player.loadKOAnimation(
-        "assets/test/",
-        koFrames,
-        0.12f
-    );
+    bool ko =
+        player.loadKOAnimation(
+            "assets/test/",
+            koFrames,
+            0.12f
+        );
 
     printf(
         "KO         -> %d frames -> %s\n",
@@ -279,75 +428,234 @@ int main(int argc, char** argv)
         ko ? "LOADED" : "FAILED"
     );
 
+
     // --------------------------------------------------------
-    // Attack
+    // ATTACK
     // --------------------------------------------------------
 
     int attackFrames = 8;
 
-    bool attack = player.loadAttack(
-        AttackType::LIGHT_PUNCH,
-        "assets/test/", attackFrames, 0.12f,
-        2, 4,
-        150,
-        15.0f, 35.0f, 65.0f, 65.0f
-    );
+    bool attack =
+        player.loadAttack(
+            AttackType::LIGHT_PUNCH,
+
+            "assets/test/",
+            attackFrames,
+            0.12f,
+
+            2,
+            4,
+
+            150,
+
+            15.0f,
+            35.0f,
+            65.0f,
+            65.0f
+        );
 
     printf(
-        "Attack     -> %d frames -> %s\n",
+        "LIGHT PUNCH -> %d frames -> %s\n",
         attackFrames,
         attack ? "LOADED" : "FAILED"
     );
 
 
     // ========================================================
-    // 6. Position / scale test
+    // TEST 5
+    // Character transform
     // ========================================================
 
-    printf("\n=== Test 5: Character Transform ===\n");
-
-    player.setPosition(400.0f, 100.0f);
-    player.setFacing(true);
-    player.setScale(1.0f);
-    player.setGroundY(50.0f);
-
-    printf("Position: (400, 100)\n");
-    printf("Facing: RIGHT\n");
-    printf("Scale: 1.0\n");
+    printf(
+        "\n=== Test 5: Character Transform ===\n"
+    );
 
 
-    // ========================================================
-    // 7. Register GLUT callbacks
-    // ========================================================
+    player.setPosition(
+        960.0f,
+        100.0f
+    );
 
-    glutDisplayFunc(display);
-    glutReshapeFunc(reshape);
-    glutKeyboardFunc(handleKeyDown);
-    glutKeyboardUpFunc(handleKeyUp);
+    player.setGroundY(
+        100.0f
+    );
+
+    player.setFacing(
+        true
+    );
+
+    player.setScale(
+        1.0f
+    );
 
 
-    // ========================================================
-    // 8. Start update loop
-    // ========================================================
+    printf(
+        "Position: (960, 100)\n"
+    );
 
-    glutTimerFunc(16, update, 0);
+    printf(
+        "Ground:   100\n"
+    );
 
+    printf(
+        "Facing:   RIGHT\n"
+    );
 
-    // ========================================================
-    // 9. Instructions
-    // ========================================================
-
-    printf("\n============================================================\n");
-    printf("                       TEST RUNNING\n");
-    printf("============================================================\n");
-    printf("\nCharacter should appear around the center of the window.\n");
-    printf("The character is being updated at approximately 60 FPS.\n");
-    printf("\nClose the window to exit.\n");
-    printf("============================================================\n\n");
+    printf(
+        "Scale:    1.0\n"
+    );
 
 
     // ========================================================
-    // 10. Start GLUT event loop
+    // TEST 6
+    // Hurtbox setup
+    // ========================================================
+
+    printf(
+        "\n=== Test 6: Hurtbox Setup ===\n"
+    );
+
+    player.setHurtboxes(
+        80.0f,    // standing width
+        180.0f,   // standing height
+        90.0f,    // crouching width
+        110.0f    // crouching height
+    );
+
+    printf(
+        "Standing hurtbox: 80 x 180\n"
+    );
+
+    printf(
+        "Crouching hurtbox: 90 x 110\n"
+    );
+
+
+    // ========================================================
+    // TEST 7
+    // Combat configuration
+    // ========================================================
+
+    printf(
+        "\n=== Test 7: Combat Configuration ===\n"
+    );
+
+    printf(
+        "Health: %d / %d\n",
+        player.getHealth(),
+        player.getMaxHealth()
+    );
+
+    printf(
+        "KO: %s\n",
+        player.isKO()
+            ? "YES"
+            : "NO"
+    );
+
+    printf(
+        "Facing right: %s\n",
+        player.getFacingRight()
+            ? "YES"
+            : "NO"
+    );
+
+
+    // ========================================================
+    // GLUT callbacks
+    // ========================================================
+
+    glutDisplayFunc(
+        display
+    );
+
+    glutReshapeFunc(
+        reshape
+    );
+
+    glutKeyboardFunc(
+        handleKeyDown
+    );
+
+    glutKeyboardUpFunc(
+        handleKeyUp
+    );
+
+
+    // ========================================================
+    // Start update loop
+    // ========================================================
+
+    glutTimerFunc(
+        16,
+        update,
+        0
+    );
+
+
+    // ========================================================
+    // Controls
+    // ========================================================
+
+    printf(
+        "\n============================================================\n"
+    );
+
+    printf(
+        "                       TEST RUNNING\n"
+    );
+
+    printf(
+        "============================================================\n"
+    );
+
+    printf(
+        "\nControls:\n"
+    );
+
+    printf(
+        "W       -> Jump\n"
+    );
+
+    printf(
+        "S       -> Crouch\n"
+    );
+
+    printf(
+        "A       -> Move backward\n"
+    );
+
+    printf(
+        "D       -> Move forward\n"
+    );
+
+    printf(
+        "Space   -> Block\n"
+    );
+
+    printf(
+        "\n"
+    );
+
+    printf(
+        "Character starts at the center of the world.\n"
+    );
+
+    printf(
+        "Virtual resolution: 1920 x 1080\n"
+    );
+
+    printf(
+        "Update rate: approximately 60 FPS\n"
+    );
+
+    printf(
+        "\n============================================================\n"
+    );
+
+
+    // ========================================================
+    // GLUT event loop
     // ========================================================
 
     glutMainLoop();
