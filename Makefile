@@ -1,102 +1,211 @@
-# Detect OS
+# ============================================================
+# OS Detection
+# ============================================================
+
 ifeq ($(OS),Windows_NT)
-	DETECTED_OS   := Windows
-	EXE_EXT       := .exe
-	RM            := del /Q
+
+	DETECTED_OS := Windows
+	EXE_EXT     := .exe
+	RM          := del /Q
+	MKDIR       := if not exist
 
 	GRAPHICS_LIBS := -lfreeglut -lopengl32 -lglu32
 	LDFLAGS_OS    :=
-else
-	DETECTED_OS   := $(shell uname -s)
-	EXE_EXT       :=
-	RM            := rm -f
 
-	GRAPHICS_LIBS := -lGL -lGLU -lglut -lSDL2
+else
+
+	DETECTED_OS := $(shell uname -s)
+	EXE_EXT     :=
+	RM          := rm -f
+	MKDIR       := mkdir -p
+
+	GRAPHICS_LIBS := -lGL -lGLU -lglut
 	LDFLAGS_OS    := -Wl,-rpath=libs
+
 endif
 
+
+# ============================================================
 # Compiler and Flags
-CXX        := g++
-CXXFLAGS   := -Iinclude -Wall -Wextra -Wpedantic -std=c++17 -O2 -g3
-LINKER     := -Llibs $(LDFLAGS_OS) $(GRAPHICS_LIBS)
+# ============================================================
 
+CXX      := g++
+
+CXXFLAGS := -Iinclude \
+            -Wall \
+            -Wextra \
+            -Wpedantic \
+            -std=c++17 \
+            -O2 \
+            -g3
+
+LINKER   := -Llibs $(LDFLAGS_OS) $(GRAPHICS_LIBS) -pthread -lm -ldl
+
+
+# ============================================================
 # Directories
-SRC_DIR    := src
-BUILD_DIR  := build
-
-# Source/object discovery - picks up every .cpp in src/ automatically,
-# so new files (Character.cpp, CombatSystem.cpp, etc.) don't need to be
-# added here by hand.
-SRCS       := $(wildcard $(SRC_DIR)/*.cpp)
-OBJS       := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
-
-TARGET     := fighting_game$(EXE_EXT)
-
-# Build Rules
-all: $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $(TARGET) $(LINKER)
-
-# Compile each .cpp into build/*.o, mirroring src/
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Ensure build/ exists before compiling into it
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-
-clean:
-	$(RM) $(TARGET)
-	$(RM) $(BUILD_DIR)/*.o
-	$(RM) $(TEST_BUILD_DIR)/*.o
-	$(RM) *_test$(EXE_EXT)
-
-.PHONY: all clean
-
 # ============================================================
-# Unit test targets - only for already-built, standalone systems.
-# Each test links against ONLY the src/*.cpp files it actually
-# depends on, not the whole engine (so e.g. texture_test doesn't
-# need to pull in Character.cpp or Game.cpp at all).
-# ============================================================
+
+SRC_DIR        := src
+BUILD_DIR      := build
 
 TEST_DIR       := test
 TEST_BUILD_DIR := build/test
 
-# One line per test file, listing which src/ modules (no .cpp) it
-# needs compiled in alongside it. Add a new line here whenever you
-# add a new *_test.cpp - nothing else in this file needs to change.
-texture_test_DEPS    := Texture
-hitbox_test_DEPS      := HitBox
-renderer_test_DEPS    := Renderer Texture
-font_test_DEPS         := Font
-sprite_test_DEPS       := Sprite Renderer Texture
-animation_test_DEPS   := Animation Texture
-input_test_DEPS         := Input
-character_test_DEPS   := Character Sprite Animation Texture Input HitBox Renderer
-hud_test_DEPS			:= Character HUD Sprite Animation Texture Input HitBox Renderer Font HitBox
-round_timer_test_DEPS			:= RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font HitBox
-camera_test_DEPS			:= Camera RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font HitBox
 
-TEST_NAMES := texture_test hitbox_test renderer_test font_test sprite_test animation_test input_test character_test hud_test round_timer_test camera_test
+# ============================================================
+# Main Program Sources
+# ============================================================
+
+# Automatically finds every .cpp inside src/
+SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+
+OBJS := $(patsubst \
+	$(SRC_DIR)/%.cpp, \
+	$(BUILD_DIR)/%.o, \
+	$(SRCS))
+
+
+TARGET := fighting_game$(EXE_EXT)
+
+
+# ============================================================
+# Main Build
+# ============================================================
+
+all: $(TARGET)
+
+
+$(TARGET): $(OBJS)
+	$(CXX) $(OBJS) -o $@ $(LINKER)
+
+
+# Compile src/*.cpp -> build/*.o
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+
+# ============================================================
+# Unit Tests
+# ============================================================
+
+# Each test lists the src modules it needs.
+#
+# Example:
+#
+# character_test_DEPS := Character Sprite Animation Texture Input HitBox Renderer
+#
+# becomes:
+#
+# build/test/character_test.o
+# build/Character.o
+# build/Sprite.o
+# build/Animation.o
+# ...
+
+
+texture_test_DEPS := \
+	Texture
+
+hitbox_test_DEPS := \
+	HitBox
+
+renderer_test_DEPS := \
+	Renderer Texture
+
+font_test_DEPS := \
+	Font
+
+sprite_test_DEPS := \
+	Sprite Renderer Texture
+
+animation_test_DEPS := \
+	Animation Texture
+
+input_test_DEPS := \
+	Input
+
+character_test_DEPS := \
+	Character Sprite Animation Texture Input HitBox Renderer
+
+hud_test_DEPS := \
+	Character HUD Sprite Animation Texture Input HitBox Renderer Font
+
+round_timer_test_DEPS := \
+	RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
+
+camera_test_DEPS := \
+	Camera RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
+
+audio_manager_test_DEPS := \
+	AudioManager
+
+
+TEST_NAMES := \
+	texture_test \
+	hitbox_test \
+	renderer_test \
+	font_test \
+	sprite_test \
+	animation_test \
+	input_test \
+	character_test \
+	hud_test \
+	round_timer_test \
+	camera_test \
+	audio_manager_test
+
+
+# ============================================================
+# Test Object Compilation
+# ============================================================
 
 $(TEST_BUILD_DIR):
 	mkdir -p $(TEST_BUILD_DIR)
 
-# Compile a test's own .cpp (test/foo_test.cpp -> build/test/foo_test.o)
+
+# test/foo_test.cpp -> build/test/foo_test.o
 $(TEST_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp | $(TEST_BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Template: build ONE test - compile its deps (reusing the existing
-# src object rule), compile the test file itself, link, then run it.
-# $(1) = test name (e.g. texture_test)
-define MAKE_TEST
-$(1): $(TEST_BUILD_DIR)/$(1).o $$(patsubst %,$(BUILD_DIR)/%.o,$$($(1)_DEPS))
-	$(CXX) $$^ -o $(1)$(EXE_EXT) $(LINKER)
-	./$(1)$(EXE_EXT)
 
-.PHONY: $(1)
+# ============================================================
+# Test Linking
+# ============================================================
+
+define MAKE_TEST
+
+$1: $(TEST_BUILD_DIR)/$1.o $$(addprefix $(BUILD_DIR)/,$$($1_DEPS:=.o))
+	$$(CXX) $$^ -o $$@ $$(LINKER)
+
+.PHONY: $1
+
 endef
 
-$(foreach t,$(TEST_NAMES),$(eval $(call MAKE_TEST,$(t))))
+
+$(foreach test,$(TEST_NAMES),$(eval $(call MAKE_TEST,$(test))))
+
+
+# ============================================================
+# Build All Tests
+# ============================================================
+
+tests: $(TEST_NAMES)
+
+
+# ============================================================
+# Cleaning
+# ============================================================
+
+clean:
+	rm -f $(TARGET)
+	rm -f $(BUILD_DIR)/*.o
+	rm -f $(TEST_BUILD_DIR)/*.o
+	rm -f *_test$(EXE_EXT)
+
+
+.PHONY: all tests clean
