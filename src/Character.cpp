@@ -5,24 +5,32 @@
 // ============================================================
 
 Character::Character()
-    : hasHitThisAttack(false),
-      x(0.0f), y(0.0f),
-      velocityX(0.0f), velocityY(0.0f),
-      facingRight(true),
-      currentState(CharacterState::IDLE),
-      groundY(0.0f),
-      gravity(2200.0f),     // tune to taste
-      jumpSpeed(450.0f),   // tune to taste
-      walkSpeed(300.0f),
-      hitStunTimer(0.0f),
-      health(100), 
-      maxHealth(100){}
+    :   x(0.0f), y(0.0f),
+        velocityX(0.0f), velocityY(0.0f),
+        facingRight(true),
+        currentState(CharacterState::IDLE),
+
+        health(100), 
+        maxHealth(100),
+
+        groundY(0.0f),
+        gravity(2200.0f),     // tune to taste
+        jumpSpeed(900.0f),   // tune to taste
+        walkSpeed(300.0f),
+
+        hasHitThisAttack(false),
+        hitStunTimer(0.0f) {}
 
 
 // ============================================================
 // Initialization / Asset Loading
 // ============================================================
 
+/*
+ * Intended way of using it is first
+ * load the animations for the character
+ * then initialize it
+ */
 bool Character::init ()
 {
     currentState = CharacterState::IDLE;

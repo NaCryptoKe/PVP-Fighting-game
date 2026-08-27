@@ -8,6 +8,11 @@
 
 #include <unordered_map>
 
+
+// ============================================================
+// Character States
+// ============================================================
+
 enum class CharacterState
 {
     IDLE,
@@ -20,6 +25,11 @@ enum class CharacterState
     KO
 };
 
+
+// ============================================================
+// Attack Types
+// ============================================================
+
 enum class AttackType
 {
     LIGHT_PUNCH,  // CROSS
@@ -28,118 +38,200 @@ enum class AttackType
     HEAVY_KICK    // TRIANGLE
 };
 
+
+// ============================================================
+// Attack Data
+// ============================================================
+
 struct AttackData
 {
     Animation anim;
     bool loaded = false;
 
-    int activeStartFrame = 0; // first frame (inclusive) hitbox is live
-    int activeEndFrame    = 0; // last frame (inclusive) hitbox is live
+    // Frames during which the attack can hit.
+    int activeStartFrame = 0;
+    int activeEndFrame   = 0;
 
     int damage = 0;
-    HitBox hitbox; // authored in facing-right local space
+
+    // Authored in facing-right local space.
+    HitBox hitbox;
 };
+
+
+// ============================================================
+// Character
+// ============================================================
 
 class Character
 {
 private:
-    // -----------------------------------------
-    // Character position and info
-    // -----------------------------------------
+
+    // ========================================================
+    // 1. Character State / Position
+    // ========================================================
+
     float x;
     float y;
+
     float velocityX;
     float velocityY;
+
     bool facingRight;
     CharacterState currentState;
 
-private:
-    // -----------------------------------------
-    // Character health
-    // -----------------------------------------
+
+    // ========================================================
+    // 2. Health
+    // ========================================================
+
     int health;
     int maxHealth;
 
-private:
-    // -----------------------------------------
-    // Character movement
-    // -----------------------------------------
+
+    // ========================================================
+    // 3. Movement / Physics
+    // ========================================================
+
     float groundY;
     float gravity;
     float jumpSpeed;
     float walkSpeed;
 
-private:
-    // -----------------------------------------
-    // Character hurtboxes/hitbox et.c
-    // -----------------------------------------
-    HitBox standingHurtbox;     // Vulnerable areas to be hit
+
+    // ========================================================
+    // 4. Collision / Hurtboxes
+    // ========================================================
+
+    HitBox standingHurtbox;
     HitBox crouchingHurtbox;
 
     HitBox hitBox;
     HitBox blockBox;
 
-private:
-    // -----------------------------------------
-    // Character rendering
-    // -----------------------------------------
-    // The image of the character
+
+    // ========================================================
+    // 5. Rendering
+    // ========================================================
+
     Sprite sprite;
 
-private:
-    // -----------------------------------------
-    // Character animations
-    // -----------------------------------------
+
+    // ========================================================
+    // 6. Animations
+    // ========================================================
+
     std::unordered_map<CharacterState, Animation> animations;
+
+
+    // ========================================================
+    // 7. Attacks
+    // ========================================================
+
     std::unordered_map<AttackType, AttackData> attacks;
 
-private:
-    // -----------------------------------------
-    // Character combat
-    // -----------------------------------------
     AttackType currentAttack;
-    bool hasHitThisAttack;  // Has the attack connected with the opponent
+    bool hasHitThisAttack;
 
-    float hitStunTimer; // The amount of time left for the stun animation to leave
+
+    // ========================================================
+    // 8. Hit Stun
+    // ========================================================
+
+    float hitStunTimer;
+
     static constexpr float HIT_STUN_DURATION = 0.35f;
 
+
 public:
-    // -----------------------------------------
+
+    // ========================================================
     // Constructor
-    // -----------------------------------------
+    // ========================================================
+
     Character();
 
-public:
-    // -----------------------------------------
-    // Initialization
-    // -----------------------------------------
-    bool init();
 
 public:
-    // -----------------------------------------
-    // Animation loading
-    // -----------------------------------------
-    bool loadIdleAnimation(const char* folder, int frames, float duration);
-    bool loadWalkAnimation(const char* folder, int frames, float duration);
-    bool loadJumpAnimation(const char* folder, int frames, float duration);
-    bool loadCrouchAnimation(const char* folder, int frames, float duration);
-    bool loadBlockAnimation(const char* folder, int frames, float duration);
-    bool loadHitStunAnimation(const char* folder, int frames, float duration);
-    bool loadKOAnimation(const char* folder, int frames, float duration);
+
+    // ========================================================
+    // Initialization
+    // ========================================================
+
+    bool init();
+
+
+public:
+
+    // ========================================================
+    // Animation Loading
+    // ========================================================
+
+    bool loadIdleAnimation(
+        const char* folder,
+        int frames,
+        float duration
+    );
+
+    bool loadWalkAnimation(
+        const char* folder,
+        int frames,
+        float duration
+    );
+
+    bool loadJumpAnimation(
+        const char* folder,
+        int frames,
+        float duration
+    );
+
+    bool loadCrouchAnimation(
+        const char* folder,
+        int frames,
+        float duration
+    );
+
+    bool loadBlockAnimation(
+        const char* folder,
+        int frames,
+        float duration
+    );
+
+    bool loadHitStunAnimation(
+        const char* folder,
+        int frames,
+        float duration
+    );
+
+    bool loadKOAnimation(
+        const char* folder,
+        int frames,
+        float duration
+    );
 
     bool loadAttack(
         AttackType type,
-        const char* folder, int frames, float duration,
-        int activeStartFrame, int activeEndFrame,
+        const char* folder,
+        int frames,
+        float duration,
+        int activeStartFrame,
+        int activeEndFrame,
         int damage,
-        float hbOffsetX, float hbOffsetY, float hbWidth, float hbHeight
+        float hbOffsetX,
+        float hbOffsetY,
+        float hbWidth,
+        float hbHeight
     );
 
+
 public:
-    // -----------------------------------------
-    // Movement / Hurtbox setup
-    // -----------------------------------------
+
+    // ========================================================
+    // Movement / Collision Setup
+    // ========================================================
+
     void setGroundY(float ground);
+
     void setHurtboxes(
         float standW,
         float standH,
@@ -147,59 +239,89 @@ public:
         float crouchH
     );
 
+
 public:
-    // -----------------------------------------
+
+    // ========================================================
     // Input / Facing
-    // -----------------------------------------
+    // ========================================================
+
     void handleInput(const InputManager& input);
 
     void faceToward(float opponentX);
-    // auto-face; skipped mid-attack/hitstun/KO
+    // Automatically faces the opponent.
+    // Does not change facing during attack, hit stun, or KO.
+
 
 public:
-    // -----------------------------------------
+
+    // ========================================================
     // Update / Rendering
-    // -----------------------------------------
+    // ========================================================
+
     void update(float deltaTime);
 
     void render();
 
+
 public:
-    // -----------------------------------------
-    // Character state / position
-    // -----------------------------------------
+
+    // ========================================================
+    // State / Position Control
+    // ========================================================
+
     void setState(CharacterState newState);
+
     void setPosition(float px, float py);
+
     void setFacing(bool right);
 
     void setScale(float scale);
 
+
 public:
-    // -----------------------------------------
-    // Combat queries
-    // Used by Game for hit detection
-    // -----------------------------------------
+
+    // ========================================================
+    // Combat Queries
+    // Used by Game for hit detection.
+    // ========================================================
+
     bool hasActiveHitbox() const;
+
     AABB getActiveHitboxWorld() const;
+
     int getActiveHitboxDamage() const;
 
     AABB getHurtboxWorld() const;
 
     bool isBlocking() const;
 
-    void registerHitLanded();
-    // Game calls this right after applying damage
 
 public:
-    // -----------------------------------------
-    // Damage / Hit reaction
-    // -----------------------------------------
+
+    // ========================================================
+    // Combat Events
+    // ========================================================
+
+    void registerHitLanded();
+    // Game calls this after the attack successfully hits.
+
+
+public:
+
+    // ========================================================
+    // Damage / Hit Reaction
+    // ========================================================
+
     void applyHit(int damage, bool wasBlocked);
 
+
 public:
-    // -----------------------------------------
+
+    // ========================================================
     // Getters
-    // -----------------------------------------
+    // ========================================================
+
     float getX() const;
     float getY() const;
 
@@ -209,5 +331,6 @@ public:
     bool isKO() const;
     bool getFacingRight() const;
 };
+
 
 #endif // CHARACTER_HPP
