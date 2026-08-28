@@ -3,6 +3,38 @@
 #include <cctype>
 #include <cstdio>
 
+namespace 
+{
+    constexpr int INPUT_BUFFER_SIZE = 32;
+
+    InputEvent inputBuffer[INPUT_BUFFER_SIZE];
+
+    int inputReadIndex = 0;
+    int inputWriteIndex = 0;
+
+    void pushInputEvent (KeyCode key, bool pressed)
+    {
+        int nextIndex = (inputWriteIndex + 1) % INPUT_BUFFER_SIZE;
+
+        // Buffer is full
+        if (nextIndex == inputReadIndex)    return;
+
+        inputBuffer[inputWriteIndex] = { key, pressed };
+        inputWriteIndex = nextIndex;
+    }
+
+    bool popInputEvent(InputEvent& event)
+    {
+        if (inputReadIndex == inputWriteIndex)
+            return false;
+        
+        event = inputBuffer[inputReadIndex];
+
+        inputReadIndex = (inputReadIndex + 1) % INPUT_BUFFER_SIZE;
+        return true;
+    }
+}
+
 // ============================================================
 // GLUT Keyboard State
 // ============================================================

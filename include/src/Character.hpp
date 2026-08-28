@@ -133,6 +133,7 @@ private:
     AttackType currentAttack;
     bool hasHitThisAttack;
 
+    void startAttack(AttackType type);
 
     // ========================================================
     // 8. Hit Stun

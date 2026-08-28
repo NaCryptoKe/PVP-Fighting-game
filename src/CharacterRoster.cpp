@@ -4,7 +4,7 @@ Character CharacterRoster::createCharacter(CharacterType type)
 {
     switch (type)
     {
-        case CharacterType::CHUN-LI:
+        case CharacterType::CHUN_LI:
             return createChunLi();
     }
 

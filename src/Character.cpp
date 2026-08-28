@@ -22,6 +22,14 @@ Character::Character()
         hitStunTimer(0.0f) {}
 
 
+// Private functions
+void Character::startAttack(AttackType type)
+{
+    currentAttack = type;
+
+    setState(CharacterState::ATTACKING);
+}
+
 // ============================================================
 // Initialization / Asset Loading
 // ============================================================
@@ -246,9 +254,7 @@ void Character::handleInput(const InputManager& input)
 
     if (currentState == CharacterState::HIT_STUN ||
         currentState == CharacterState::KO)
-    {
         return;
-    }
 
     bool onGround = (y <= groundY);
 
@@ -329,7 +335,13 @@ void Character::handleInput(const InputManager& input)
         }
     }
 
-    // Attacks for later
+    // --------------------------------------------------------------------------------
+    // Attacks
+    // --------------------------------------------------------------------------------
+    if (input.isActionPressed(InputAction::LIGHT_PUNCH)) startAttack(AttackType::LIGHT_PUNCH);
+    else if (input.isActionPressed(InputAction::HARD_PUNCH)) startAttack(AttackType::HEAVY_PUNCH);
+    else if (input.isActionPressed(InputAction::LIGHT_KICK)) startAttack(AttackType::LIGHT_KICK);
+    else if (input.isActionPressed(InputAction::HARD_KICK)) startAttack(AttackType::HEAVY_KICK);
 }
 
 // ============================================================
@@ -411,16 +423,31 @@ void Character::update(float deltaTime)
     // --------------------------------------------------------
     // Get current animation
     // --------------------------------------------------------
-
-    auto currentAnim = animations.find(currentState);
-
-    if (currentAnim != animations.end())
+    // Updating attack animations
+    if (currentState == CharacterState::ATTACKING)
     {
-        currentAnim->second.update(deltaTime);
+        AttackData& attack = attacks.at(currentAttack);
 
-        sprite.setTexture(
-            currentAnim->second.getCurrentTexture()
-        );
+        attack.anim.update(deltaTime);
+
+        if (attack.anim.isFinished())
+        {
+            setState(CharacterState::IDLE);
+        }
+    }
+    // Updating normal animations
+    else
+    {
+        auto currentAnim = animations.find(currentState);
+
+        if (currentAnim != animations.end())
+        {
+            currentAnim->second.update(deltaTime);
+
+            sprite.setTexture(
+                currentAnim->second.getCurrentTexture()
+            );
+        }
     }
 
 
@@ -454,6 +481,17 @@ void Character::setState(CharacterState newState)
         return;
 
     currentState = newState;
+
+    if (currentState == CharacterState::ATTACKING)
+    {
+        hasHitThisAttack = false;
+        AttackData& attack = attacks.at(currentAttack);
+        attack.anim.reset();
+        sprite.setTexture(
+            attack.anim.getCurrentTexture()
+        );
+        return;
+    }
 
     // --------------------------------------------------------
     // Reset state animation

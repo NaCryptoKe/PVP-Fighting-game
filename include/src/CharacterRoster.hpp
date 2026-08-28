@@ -6,7 +6,7 @@
 // who the fighter is.
 enum class CharacterType
 {
-    CHUN-LI
+    CHUN_LI
     // ...
 };
 

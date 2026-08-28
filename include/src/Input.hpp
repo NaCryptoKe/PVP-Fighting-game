@@ -7,6 +7,12 @@
 #include "GL/glut.h"
 #include <SDL2/SDL.h>
 
+struct InputEvent
+{
+    KeyCode key;
+    bool pressed;
+};
+
 enum class InputAction
 {
     JUMP,
