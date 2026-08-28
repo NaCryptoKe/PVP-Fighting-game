@@ -5,6 +5,10 @@
 
 namespace 
 {
+    // NOTE: capacity is INPUT_BUFFER_SIZE - 1 usable slots, since one
+    // slot is always kept empty to distinguish "full" from "empty"
+    // (inputWriteIndex catching up to inputReadIndex means full,
+    // inputReadIndex == inputWriteIndex means empty).
     constexpr int INPUT_BUFFER_SIZE = 32;
 
     InputEvent inputBuffer[INPUT_BUFFER_SIZE];
@@ -12,16 +16,10 @@ namespace
     int inputReadIndex = 0;
     int inputWriteIndex = 0;
 
-    void pushInputEvent (KeyCode key, bool pressed)
-    {
-        int nextIndex = (inputWriteIndex + 1) % INPUT_BUFFER_SIZE;
-
-        // Buffer is full
-        if (nextIndex == inputReadIndex)    return;
-
-        inputBuffer[inputWriteIndex] = { key, pressed };
-        inputWriteIndex = nextIndex;
-    }
+    // Count of events that were dropped because the buffer was full.
+    // Surfaced via takeDroppedInputEventCount() so callers/tests can
+    // detect an undersized buffer instead of silently losing input.
+    int droppedEventCount = 0;
 
     bool popInputEvent(InputEvent& event)
     {
@@ -35,11 +33,54 @@ namespace
     }
 }
 
+void pushInputEvent(KeyCode key, bool pressed)
+{
+    int nextIndex = (inputWriteIndex + 1) % INPUT_BUFFER_SIZE;
+
+    // Buffer is full 
+    if (nextIndex == inputReadIndex)
+    {
+        ++droppedEventCount;
+        return;
+    }
+
+    inputBuffer[inputWriteIndex] = { key, pressed };
+    inputWriteIndex = nextIndex;
+}
+
+int takeDroppedInputEventCount()
+{
+    int count = droppedEventCount;
+    droppedEventCount = 0;
+    return count;
+}
+
 // ============================================================
 // GLUT Keyboard State
 // ============================================================
 
 static bool g_keys[256] = { false };
+
+bool keyToKeyCode(unsigned char key, KeyCode& result)
+{
+    switch (key)
+    {
+        case 'w': result = KeyCode::W;     return true;
+        case 's': result = KeyCode::S;     return true;
+        case 'd': result = KeyCode::D;     return true;
+        case 'a': result = KeyCode::A;     return true;
+
+        case 'k': result = KeyCode::K;     return true;
+        case 'l': result = KeyCode::L;     return true;
+        case 'j': result = KeyCode::J;     return true;
+        case 'i': result = KeyCode::I;     return true;
+
+        case ' ': result = KeyCode::Space; return true;
+        case 'u': result = KeyCode::U;     return true;
+    }
+
+    return false;
+}
 
 void handleKeyDown(unsigned char key, int x, int y)
 {
@@ -53,6 +94,12 @@ void handleKeyDown(unsigned char key, int x, int y)
     printf("%c\n", key);
 
     g_keys[key] = true;
+
+    KeyCode code;
+    if (keyToKeyCode(key, code))
+    {
+        pushInputEvent(code, true);
+    }
 }
 
 void handleKeyUp(unsigned char key, int x, int y)
@@ -65,6 +112,12 @@ void handleKeyUp(unsigned char key, int x, int y)
     );
 
     g_keys[key] = false;
+    
+    KeyCode code;
+    if (keyToKeyCode(key, code))
+    {
+        pushInputEvent(code, false);
+    }
 }
 
 // ============================================================
@@ -558,23 +611,45 @@ void InputManager::applyPadDefaults()
 // InputManager Update
 // ============================================================
 
-void InputManager::update(
-    const std::function<bool(KeyCode)>& isRawKeyDown
-)
+void InputManager::update()
 {
-    for (auto& [action, key] : bindings)
+    // wasPressedThisFrame / wasReleasedThisFrame are one-shot flags:
+    // they should only be true for the single update() call in which
+    // the transition happened, so clear them before draining new events.
+    for (auto& entry : actionStates)
     {
-        auto& state = actionStates[action];
+        entry.second.wasPressedThisFrame  = false;
+        entry.second.wasReleasedThisFrame = false;
+    }
 
-        bool isDown = isRawKeyDown(key);
+    InputEvent event;
 
-        state.wasPressedThisFrame =
-            isDown && !state.isHeld;
+    while (popInputEvent(event))
+    {
+        int key = static_cast<int>(event.key);
+        keyState[key] = event.pressed;
 
-        state.wasReleasedThisFrame =
-            !isDown && state.isHeld;
+        // A single physical key can be bound to more than one action
+        // (e.g. keyboard binding vs. pad binding both being active),
+        // so update every action bound to this key.
+        for (auto& binding : bindings)
+        {
+            if (binding.second != event.key)
+                continue;
 
-        state.isHeld = isDown;
+            InputState& state = actionStates[binding.first];
+
+            if (event.pressed && !state.isHeld)
+            {
+                state.wasPressedThisFrame = true;
+            }
+            else if (!event.pressed && state.isHeld)
+            {
+                state.wasReleasedThisFrame = true;
+            }
+
+            state.isHeld = event.pressed;
+        }
     }
 }
 

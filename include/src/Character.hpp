@@ -5,9 +5,23 @@
 #include "src/Animation.hpp"
 #include "src/Input.hpp"
 #include "src/HitBox.hpp"
+#include "src/AudioManager.hpp"
 
 #include <unordered_map>
+#include <string>
 
+// ============================================================
+// Audio States
+// ============================================================
+
+enum class AudioState
+{
+    KO,
+    BLOCK,
+    JUMP,
+    ATTACK,
+    IDLE
+};
 
 // ============================================================
 // Character States
@@ -79,6 +93,7 @@ private:
 
     bool facingRight;
     CharacterState currentState;
+    AudioState audioState;
 
 
     // ========================================================
@@ -143,6 +158,12 @@ private:
 
     static constexpr float HIT_STUN_DURATION = 0.35f;
 
+    // ========================================================
+    // 9. Audio
+    // ========================================================
+    AudioManager audio;
+
+    std::unordered_map<AudioState, std::string> sfxs;
 
 public:
 
@@ -161,6 +182,14 @@ public:
 
     bool init();
 
+public:
+
+    // ========================================================
+    // Audio
+    // ========================================================
+    bool addSfx(AudioState state, const char* filepath);
+    bool setVolume(float volume);
+    bool playSfx(AudioState state);
 
 public:
 

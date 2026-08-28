@@ -126,10 +126,7 @@ void update(int value)
     // Update input
     // --------------------------------------------------------
 
-    input.update([](KeyCode key)
-    {
-        return isGlutKeyDown(key);
-    });
+    input.update();
 
 
     // --------------------------------------------------------

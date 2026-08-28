@@ -19,7 +19,7 @@ else
 	RM          := rm -f
 	MKDIR       := mkdir -p
 
-	GRAPHICS_LIBS := -lGL -lGLU -lglut
+	GRAPHICS_LIBS := -lGL -lGLU -lglut -lSDL2
 	LDFLAGS_OS    := -Wl,-rpath=libs
 
 endif

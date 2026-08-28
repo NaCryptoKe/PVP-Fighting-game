@@ -7,12 +7,6 @@
 #include "GL/glut.h"
 #include <SDL2/SDL.h>
 
-struct InputEvent
-{
-    KeyCode key;
-    bool pressed;
-};
-
 enum class InputAction
 {
     JUMP,
@@ -55,8 +49,37 @@ enum class KeyCode
     PadDPADUp,
     PadDPADDown,
     PadDPADLeft,
-    PadDPADRight
+    PadDPADRight,
+
+    COUNT
 };
+
+struct InputEvent
+{
+    KeyCode key;
+    bool pressed;
+};
+
+// ============================================================
+// Input Event Queue
+// ============================================================
+//
+// Raw devices (GLUT keyboard callbacks, etc.) push discrete
+// press/release events here; InputManager::update() drains the
+// queue once per frame. Exposed publicly so:
+//   - new input backends can feed events without touching Input.cpp
+//   - tests can inject synthetic events without a live window
+//
+// The queue is a fixed-size ring buffer (see INPUT_BUFFER_SIZE in
+// Input.cpp). If update() isn't called often enough relative to the
+// event rate, older un-drained events can cause new ones to be
+// dropped - use takeDroppedInputEventCount() to detect this.
+
+void pushInputEvent(KeyCode key, bool pressed);
+
+// Returns how many events have been dropped due to a full buffer
+// since the last call, then resets the counter to 0.
+int takeDroppedInputEventCount();
 
 struct InputState
 {
@@ -72,7 +95,7 @@ public:
 
     void setBinding(InputAction action, KeyCode key);
 
-    void update(const std::function<bool(KeyCode)>& isRawKeyDown);
+    void update();
 
     bool isActionHeld(InputAction action) const;
     bool isActionPressed(InputAction action) const;
@@ -82,6 +105,7 @@ public:
     void applyPadDefaults();
     
 private: 
+    bool keyState[static_cast<int>(KeyCode::COUNT)];
     std::unordered_map<InputAction, KeyCode> bindings;
     std::unordered_map<InputAction, InputState> actionStates;
 };

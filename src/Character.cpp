@@ -22,6 +22,30 @@ Character::Character()
         hitStunTimer(0.0f) {}
 
 
+// ========================================================
+// Audio
+// ========================================================
+bool Character::addSfx(AudioState state, const char* filepath)
+{
+    if (!filepath) 
+    {
+        return false;
+    }
+
+    sfxs[state] = filepath;
+    return true;
+}
+
+bool Character::setVolume(float volume)
+{
+    audio.set_master_volume(volume);
+}
+
+bool Character::playSfx(AudioState state)
+{
+    audio.play_sound(sfxs[state]);
+}
+
 // Private functions
 void Character::startAttack(AttackType type)
 {
@@ -42,6 +66,10 @@ void Character::startAttack(AttackType type)
 bool Character::init ()
 {
     currentState = CharacterState::IDLE;
+
+    if (!audio.initialize()) {
+        return false;
+    }
 
     TextureData initialTex = animations[currentState].getCurrentTexture();
     if(initialTex.id == 0) return false;
@@ -484,6 +512,7 @@ void Character::setState(CharacterState newState)
 
     if (currentState == CharacterState::ATTACKING)
     {
+        playSfx(AudioState::ATTACK);
         hasHitThisAttack = false;
         AttackData& attack = attacks.at(currentAttack);
         attack.anim.reset();
@@ -520,6 +549,24 @@ void Character::setState(CharacterState newState)
     if (currentState == CharacterState::ATTACKING)
     {
         hasHitThisAttack = false;
+    }
+
+    switch(currentState)
+    {
+        case CharacterState::BLOCKING:
+            playSfx(AudioState::BLOCK);
+            break;
+        case CharacterState::IDLE:
+            playSfx(AudioState::IDLE);
+            break;
+        case CharacterState::JUMPING:
+            playSfx(AudioState::JUMP);
+            break;
+        case CharacterState::KO:
+            playSfx(AudioState::KO);
+            break;
+        default:
+            break;
     }
 }
 
