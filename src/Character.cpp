@@ -19,7 +19,8 @@ Character::Character()
         walkSpeed(300.0f),
 
         hasHitThisAttack(false),
-        hitStunTimer(0.0f) {}
+        hitStunTimer(0.0f),
+        audio(std::make_unique<AudioManager>()) {}
 
 
 // ========================================================
@@ -38,12 +39,21 @@ bool Character::addSfx(AudioState state, const char* filepath)
 
 bool Character::setVolume(float volume)
 {
-    audio.set_master_volume(volume);
+    audio->set_master_volume(volume);
+    return true;
 }
 
 bool Character::playSfx(AudioState state)
 {
-    audio.play_sound(sfxs[state]);
+    // .find() instead of operator[]: a state with no registered sfx
+    // (never passed to addSfx) should be a silent no-op, not a
+    // silent insert of an empty-string entry into the map.
+    auto it = sfxs.find(state);
+
+    if (it == sfxs.end())
+        return false;
+
+    return audio->play_sound(it->second);
 }
 
 // Private functions
@@ -67,7 +77,7 @@ bool Character::init ()
 {
     currentState = CharacterState::IDLE;
 
-    if (!audio.initialize()) {
+    if (!audio->initialize()) {
         return false;
     }
 

@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 // ============================================================
 // Audio States
@@ -161,7 +162,13 @@ private:
     // ========================================================
     // 9. Audio
     // ========================================================
-    AudioManager audio;
+    // Held via unique_ptr: AudioManager owns a live audio-engine
+    // handle (non-copyable), and has no move constructor either
+    // (a user-declared destructor suppresses the implicit one).
+    // unique_ptr gives Character a move ctor/assignment "for free"
+    // without needing to touch AudioManager's internals - required
+    // for CharacterRoster::createChunLi() to return by value.
+    std::unique_ptr<AudioManager> audio;
 
     std::unordered_map<AudioState, std::string> sfxs;
 
