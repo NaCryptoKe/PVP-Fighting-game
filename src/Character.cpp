@@ -317,11 +317,17 @@ void Character::handleInput(const InputManager& input)
 
 void Character::faceToward(float opponentX)
 {
-    // Don't flip mid-attack/hitstun/KO - would desync the hitbox
-    // position and look glitchy.
+    // Don't flip mid-attack/hitstun/KO/jump - would desync the hitbox
+    // position and look glitchy. Jumping is the important case for
+    // crossing over an opponent: "forward" movement is relative to
+    // facingRight (see handleInput()), so flipping facing mid-arc the
+    // instant X crosses the opponent's X would immediately reverse
+    // what "forward" means and yank the jumper right back toward the
+    // opponent instead of letting them sail over as a crossup.
     if (currentState == CharacterState::ATTACKING ||
         currentState == CharacterState::HIT_STUN ||
-        currentState == CharacterState::KO)
+        currentState == CharacterState::KO ||
+        currentState == CharacterState::JUMPING)
         return;
 
     facingRight = (opponentX >= x);

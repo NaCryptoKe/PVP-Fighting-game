@@ -242,8 +242,18 @@ void Game::resolveStageBounds()
     p1x = std::max(STAGE_LEFT, std::min(STAGE_RIGHT, p1x));
     p2x = std::max(STAGE_LEFT, std::min(STAGE_RIGHT, p2x));
 
+    // Only push players apart if they could plausibly be colliding -
+    // i.e. their hurtboxes actually overlap vertically too, not just
+    // horizontally. Without this check, a player jumping over their
+    // opponent's head (same X, very different Y) was still treated
+    // as a horizontal collision and shoved sideways instead of being
+    // allowed to pass overhead.
+    AABB p1Box = player1.getHurtboxWorld();
+    AABB p2Box = player2.getHurtboxWorld();
+    bool verticallyOverlapping = (p1Box.bottom < p2Box.top) && (p2Box.bottom < p1Box.top);
+
     float dist = p2x - p1x;
-    if (std::abs(dist) < MIN_SEPARATION)
+    if (verticallyOverlapping && std::abs(dist) < MIN_SEPARATION)
     {
         float overlap = MIN_SEPARATION - std::abs(dist);
         float push = overlap / 2.0f;
