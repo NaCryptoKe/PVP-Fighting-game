@@ -129,23 +129,23 @@ animation_test_DEPS := \
 input_test_DEPS := \
 	Input
 
-# NOTE: any test that links Character must also link AudioManager -
-# Character now owns a std::unique_ptr<AudioManager> and calls into
-# it directly, so it's a real link dependency, not just a header.
 character_test_DEPS := \
-	Character AudioManager Sprite Animation Texture Input HitBox Renderer
+	Character Sprite Animation Texture Input HitBox Renderer
 
 hud_test_DEPS := \
-	Character AudioManager HUD Sprite Animation Texture Input HitBox Renderer Font
+	Character HUD Sprite Animation Texture Input HitBox Renderer Font
 
 round_timer_test_DEPS := \
-	RoundTimer Character AudioManager HUD Sprite Animation Texture Input HitBox Renderer Font
+	RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
 
 camera_test_DEPS := \
-	Camera RoundTimer Character AudioManager HUD Sprite Animation Texture Input HitBox Renderer Font
+	Camera RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
 
 audio_manager_test_DEPS := \
 	AudioManager
+
+config_test_DEPS := \
+	Config Input
 
 
 TEST_NAMES := \
@@ -160,7 +160,8 @@ TEST_NAMES := \
 	hud_test \
 	round_timer_test \
 	camera_test \
-	audio_manager_test
+	audio_manager_test \
+	config_test
 
 
 # ============================================================
