@@ -7,6 +7,7 @@
 #include "src/Font.hpp"
 #include "src/Renderer.hpp"
 #include "src/Input.hpp"
+#include "src/Config.hpp"
 
 class Game
 {
@@ -21,12 +22,16 @@ private:
     InputManager p1Input;
     InputManager p2Input;
 
+    Config config;
+    static constexpr const char* CONFIG_PATH = "config.ini";
+
     Font gameFont;
 
     int lastTime;
 
     void resolveCombat();       // hit detection between player1/player2
     void resolveStageBounds();  // keep both players on-screen and apart
+    void pollGamepad();         // bridges SDL2 pad state into the InputManager event queue
 
     void drawDebugBoxes(Character &c);
 
@@ -34,7 +39,6 @@ public:
     void init();
     Game() : windowWidth(800), windowHeight(600) {}
     void updateDimensions(int width, int height);
-    void handleJoystick(unsigned int buttonMask, int x, int y, int z);
     void render();
     void update();
     void reshape(int width, int height);

@@ -17,29 +17,35 @@ void Game::init()
 {
     if (!gameFont.load("assets/fonts/mainFont.ttf", 32.0f)) printf("Font loading failed!\n");
 
-    if (!player1.init(
-        "assets/characters/chun-li/idle/", 3,
-        "assets/characters/chun-li/jump/", 6
-    ))
-        printf("Player 1 base animations failed to load!\n");
+    if (!player1.init())
+        printf("Player 1 failed to initialize!\n");
 
-    if (!player2.init(
-        "assets/characters/chun-li/idle/", 3,
-        "assets/characters/chun-li/jump-forward/", 5
-    ))
-        printf("Player 2 base animations failed to load!\n");
+    if (!player2.init())
+        printf("Player 2 failed to initialize!\n");
 
-    // Optional animations - safe to omit any of these; the matching
-    // state falls back to idle if never loaded.
-    player1.loadWalkAnimation("assets/characters/chun-li/walk/", 14);
-    player1.loadCrouchAnimation("assets/characters/chun-li/crouch/", 3);
-    player1.loadBlockAnimation("assets/characters/chun-li/block/", 2);
-    player1.loadHitAnimation("assets/characters/chun-li/hit/", 3);
+    // Idle/jump are the only animations Character strictly requires
+    // to render/update; everything below is optional and falls back
+    // to idle if never loaded. Durations match the per-frame timings
+    // used in test/character_test.cpp.
+    if (!player1.loadIdleAnimation("assets/characters/chun-li/idle/", 3, 0.16f))
+        printf("Player 1 idle animation failed to load!\n");
+    if (!player1.loadJumpAnimation("assets/characters/chun-li/jump/", 6, 0.10f))
+        printf("Player 1 jump animation failed to load!\n");
 
-    player2.loadWalkAnimation("assets/characters/chun-li/walk/", 6);
-    player2.loadCrouchAnimation("assets/characters/chun-li/crouch/", 3);
-    player2.loadBlockAnimation("assets/characters/chun-li/block/", 2);
-    player2.loadHitAnimation("assets/characters/chun-li/hit/", 3);
+    if (!player2.loadIdleAnimation("assets/characters/chun-li/idle/", 3, 0.16f))
+        printf("Player 2 idle animation failed to load!\n");
+    if (!player2.loadJumpAnimation("assets/characters/chun-li/jump-forward/", 5, 0.10f))
+        printf("Player 2 jump animation failed to load!\n");
+
+    player1.loadWalkAnimation("assets/characters/chun-li/walk/", 14, 0.12f);
+    player1.loadCrouchAnimation("assets/characters/chun-li/crouch/", 3, 0.14f);
+    player1.loadBlockAnimation("assets/characters/chun-li/block/", 2, 0.11f);
+    player1.loadHitStunAnimation("assets/characters/chun-li/hit/", 3, 0.08f);
+
+    player2.loadWalkAnimation("assets/characters/chun-li/walk/", 6, 0.12f);
+    player2.loadCrouchAnimation("assets/characters/chun-li/crouch/", 3, 0.14f);
+    player2.loadBlockAnimation("assets/characters/chun-li/block/", 2, 0.11f);
+    player2.loadHitStunAnimation("assets/characters/chun-li/hit/", 3, 0.08f);
 
     // Attacks - optional too. Active frames / damage / hitbox size are
     // placeholders; tune once real frame data and hitbox art exist.
@@ -76,8 +82,25 @@ void Game::init()
     player1.setPosition(600.0f, FLOOR_Y);
     player2.setPosition(1320.0f, FLOOR_Y);
 
-    p1Input.applyPlayer1Defaults();
-    p2Input.applyPadDefaults();
+    // Config.load() falls back to (and returns false for) built-in
+    // defaults if config.ini doesn't exist yet or fails to parse -
+    // save() then writes it out so it exists for next launch.
+    if (!config.load(CONFIG_PATH))
+    {
+        config.save(CONFIG_PATH);
+    }
+
+    config.applyBindings(p1Input, true);
+    config.applyBindings(p2Input, false);
+
+    player1.setVolume(config.getMasterVolume());
+    player2.setVolume(config.getMasterVolume());
+
+    // Player 2's default bindings are gamepad keys (see Config's
+    // built-in defaults) - without a connected controller those
+    // bindings simply never fire, same as an unplugged keyboard.
+    if (!initGamepad())
+        printf("No gamepad connected - Player 2 pad input unavailable until one connects.\n");
 
     lastTime = glutGet(GLUT_ELAPSED_TIME);
 }
@@ -150,36 +173,43 @@ void Game::reshape(int width, int height) {
  * 9 - Option
  * 8 - Share
 */
-void Game::handleJoystick(unsigned int buttonMask, int x, int y, int z)
+namespace
 {
-    updatePadState(buttonMask, x, y);
+    // Every KeyCode the gamepad can report - polled once per frame
+    // in Game::pollGamepad(). Kept as an explicit list rather than
+    // iterating 0..COUNT so the keyboard KeyCodes (W/S/D/A/etc.)
+    // never get swept in here by accident.
+    constexpr KeyCode PAD_KEYS[] = {
+        KeyCode::PadCross, KeyCode::PadCircle, KeyCode::PadSquare, KeyCode::PadTriangle,
+        KeyCode::PadL1, KeyCode::PadR1, KeyCode::PadL2, KeyCode::PadR2,
+        KeyCode::PadL3, KeyCode::PadR3,
+        KeyCode::PadStickUp, KeyCode::PadStickDown, KeyCode::PadStickLeft, KeyCode::PadStickRight,
+        KeyCode::PadDPADUp, KeyCode::PadDPADDown, KeyCode::PadDPADLeft, KeyCode::PadDPADRight,
+    };
+}
 
-    // Stores the button state from the *last* time this function ran
-    static unsigned int previousMask = 0;
+void Game::pollGamepad()
+{
+    updateGamepad();
 
-    // 1. Find which buttons CHANGED state (XOR)
-    unsigned int changed = buttonMask ^ previousMask;
+    // isGamepadKeyDown() is state, not events - InputManager::update()
+    // only reacts to pushInputEvent() transitions (the same queue
+    // GLUT's keyboard callbacks feed). So we diff against last
+    // frame's state here and push a transition event exactly once,
+    // the same way a real key-down/key-up callback would.
+    static bool previousPadState[static_cast<int>(KeyCode::COUNT)] = { false };
 
-    // 2. Filter out releases: keep only buttons that changed AND are currently down
-    unsigned int newlyPressed = changed & buttonMask;
-
-    // 3. Print the index of any newly pressed button
-    if (newlyPressed > 0) 
+    for (KeyCode key : PAD_KEYS)
     {
-        printf("Button Pressed: ");
-        for (int i = 0; i < 32; i++) {
-            if (newlyPressed & (1 << i)) 
-            {
-                printf("[%d] ", i);
-            }
+        bool isDown = isGamepadKeyDown(key);
+        int index = static_cast<int>(key);
+
+        if (isDown != previousPadState[index])
+        {
+            pushInputEvent(key, isDown);
+            previousPadState[index] = isDown;
         }
-        printf("\n");
     }
-
-    // Save the current state to use as history in the next poll cycle
-    previousMask = buttonMask;
-
-    glutPostRedisplay();
 }
 
 void Game::resolveCombat()
@@ -254,8 +284,10 @@ void Game::update()
 {
     calculateFPS();
 
-    p1Input.update(isGlutKeyDown);
-    p2Input.update(isGlutKeyDown);
+    pollGamepad();
+
+    p1Input.update();
+    p2Input.update();
 
     int currentTime = glutGet(GLUT_ELAPSED_TIME);
     float deltaTime = (currentTime - lastTime) / 1000.0f;

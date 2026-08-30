@@ -15,7 +15,7 @@ Character::Character()
 
         groundY(0.0f),
         gravity(2200.0f),     // tune to taste
-        jumpSpeed(900.0f),   // tune to taste
+        jumpSpeed(3000.0f),   // tune to taste
         walkSpeed(300.0f),
 
         hasHitThisAttack(false),
