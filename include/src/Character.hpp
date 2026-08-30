@@ -151,6 +151,17 @@ private:
 
     void startAttack(AttackType type);
 
+    // Shared implementation behind the loadXAnimation() methods below -
+    // they differed only in which CharacterState they populate and
+    // whether the animation loops. See refactor.md.
+    bool loadAnimation(
+        CharacterState state,
+        const char* folder,
+        int frames,
+        float duration,
+        bool loop
+    );
+
     // ========================================================
     // 8. Hit Stun
     // ========================================================

@@ -89,130 +89,59 @@ bool Character::init ()
     return true;
 }
 
-bool Character::loadIdleAnimation(
+bool Character::loadAnimation(
+    CharacterState state,
     const char* folder,
     int frames,
-    float duration
+    float duration,
+    bool loop
 )
 {
-    Animation idle;
+    Animation anim;
 
-    if (!idle.loadFromFiles(folder, frames, duration, true))
+    if (!anim.loadFromFiles(folder, frames, duration, loop))
     {
         return false;
     }
 
-    animations[CharacterState::IDLE] = idle;
+    animations[state] = anim;
 
     return true;
 }
 
-bool Character::loadWalkAnimation(
-    const char* folder,
-    int frames,
-    float duration
-)
+bool Character::loadIdleAnimation(const char* folder, int frames, float duration)
 {
-    Animation walk;
-
-    if (!walk.loadFromFiles(folder, frames, duration, true))
-    {
-        return false;
-    }
-
-    animations[CharacterState::WALKING] = walk;
-
-    return true;
+    return loadAnimation(CharacterState::IDLE, folder, frames, duration, true);
 }
 
-bool Character::loadJumpAnimation(
-    const char* folder,
-    int frames,
-    float duration
-)
+bool Character::loadWalkAnimation(const char* folder, int frames, float duration)
 {
-    Animation jump;
-
-    if (!jump.loadFromFiles(folder, frames, duration, false))
-    {
-        return false;
-    }
-
-    animations[CharacterState::JUMPING] = jump;
-
-    return true;
+    return loadAnimation(CharacterState::WALKING, folder, frames, duration, true);
 }
 
-bool Character::loadCrouchAnimation(
-    const char* folder,
-    int frames,
-    float duration
-)
+bool Character::loadJumpAnimation(const char* folder, int frames, float duration)
 {
-    Animation crouch;
-
-    if (!crouch.loadFromFiles(folder, frames, duration, true))
-    {
-        return false;
-    }
-
-    animations[CharacterState::CROUCHING] = crouch;
-
-    return true;
+    return loadAnimation(CharacterState::JUMPING, folder, frames, duration, false);
 }
 
-bool Character::loadBlockAnimation(
-    const char* folder,
-    int frames,
-    float duration
-)
+bool Character::loadCrouchAnimation(const char* folder, int frames, float duration)
 {
-    Animation block;
-
-    if (!block.loadFromFiles(folder, frames, duration, true))
-    {
-        return false;
-    }
-
-    animations[CharacterState::BLOCKING] = block;
-
-    return true;
+    return loadAnimation(CharacterState::CROUCHING, folder, frames, duration, true);
 }
 
-bool Character::loadHitStunAnimation(
-    const char* folder,
-    int frames,
-    float duration
-)
+bool Character::loadBlockAnimation(const char* folder, int frames, float duration)
 {
-    Animation hitStun;
-
-    if (!hitStun.loadFromFiles(folder, frames, duration, false))
-    {
-        return false;
-    }
-
-    animations[CharacterState::HIT_STUN] = hitStun;
-
-    return true;
+    return loadAnimation(CharacterState::BLOCKING, folder, frames, duration, true);
 }
 
-bool Character::loadKOAnimation(
-    const char* folder,
-    int frames,
-    float duration
-)
+bool Character::loadHitStunAnimation(const char* folder, int frames, float duration)
 {
-    Animation KO;
+    return loadAnimation(CharacterState::HIT_STUN, folder, frames, duration, false);
+}
 
-    if (!KO.loadFromFiles(folder, frames, duration, false))
-    {
-        return false;
-    }
-
-    animations[CharacterState::KO] = KO;
-
-    return true;
+bool Character::loadKOAnimation(const char* folder, int frames, float duration)
+{
+    return loadAnimation(CharacterState::KO, folder, frames, duration, false);
 }
 
 bool Character::loadAttack(
