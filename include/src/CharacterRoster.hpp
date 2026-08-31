@@ -6,7 +6,7 @@
 // who the fighter is.
 enum class CharacterType
 {
-    CHUN_LI
+    RYU
     // ...
 };
 
@@ -16,7 +16,7 @@ public:
    static Character createCharacter(CharacterType type);
 
 private:
-   static Character createChunLi();
+   static Character createRyu();
 };
 
 #endif  // CHARACTER_ROSTER_HPP

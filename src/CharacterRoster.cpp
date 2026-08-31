@@ -1,23 +1,22 @@
 #include "src/CharacterRoster.hpp"
+#include "src/Character.hpp"
 
 Character CharacterRoster::createCharacter(CharacterType type)
 {
     switch (type)
     {
-        case CharacterType::CHUN_LI:
-            return createChunLi();
+        case CharacterType::RYU:
+            return createRyu();
     }
 
     return Character();
 }
 
-Character CharacterRoster::createChunLi()
+Character CharacterRoster::createRyu()
 {
     Character character;
 
-    character.loadIdleAnimation("./assets/characters/chun-li/idle/", 3, 0.16f);
-    character.loadJumpAnimation("./assets/characters/chun-li/jump/", 6, 0.16f);
-    character.loadWalkAnimation("./assets/characters/chun-li/walk/", 14, 0.16f);
+    character.loadAnimation(CharacterState::IDLE, "./assets/ryu/idle/", 4, 0.16f, true);
 
     character.setHurtboxes(
         80.0f,

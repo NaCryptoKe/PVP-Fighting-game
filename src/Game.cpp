@@ -27,7 +27,7 @@ void Game::init()
     // to render/update; everything below is optional and falls back
     // to idle if never loaded. Durations match the per-frame timings
     // used in test/character_test.cpp.
-    if (!player1.loadIdleAnimation("assets/characters/chun-li/idle/", 3, 0.16f))
+    if (!player1.loadIdleAnimation("assets/sprites/row_04/", 4, 0.16f))
         printf("Player 1 idle animation failed to load!\n");
     if (!player1.loadJumpAnimation("assets/characters/chun-li/jump/", 6, 0.10f))
         printf("Player 1 jump animation failed to load!\n");
