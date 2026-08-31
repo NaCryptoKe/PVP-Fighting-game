@@ -14,6 +14,7 @@ ifeq ($(OS),Windows_NT)
                      -luser32 -lgdi32 -lversion -lwinmm -lshell32 \
                      -lfreeglut -lopengl32 -lglu32
     LDFLAGS_OS    := -Llibs/windows
+    EXTRA_LIBS    := -lm
 
 else
 
@@ -24,6 +25,7 @@ else
 
     GRAPHICS_LIBS := -lGL -lGLU -lglut -lSDL2
     LDFLAGS_OS    := -Llibs/linux -Wl,-rpath=libs/linux
+    EXTRA_LIBS    := -pthread -lm -ldl
 
 endif
 
@@ -42,7 +44,7 @@ CXXFLAGS := -Iinclude \
             -O2 \
             -g3
 
-LINKER   := $(LDFLAGS_OS) $(GRAPHICS_LIBS) -pthread -lm -ldl
+LINKER   := $(LDFLAGS_OS) $(GRAPHICS_LIBS) $(EXTRA_LIBS)
 
 
 # ============================================================
@@ -76,10 +78,10 @@ TARGET := fighting_game$(EXE_EXT)
 # Main Build
 # ============================================================
 
-all: $(TARGET)
+all: $(TARGET) dlls
 
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) | dlls
 	$(CXX) $(OBJS) -o $@ $(LINKER)
 
 
@@ -94,6 +96,25 @@ ifeq ($(OS),Windows_NT)
 else
 	$(MKDIR) $(BUILD_DIR)
 endif
+
+
+# ============================================================
+# Runtime DLLs (Windows only)
+# ============================================================
+
+# libs/windows already contains correctly-named DLLs (libfreeglut.dll,
+# SDL2.dll). -Llibs/windows only helps the linker find import libs at
+# link time -- the actual .dll files still need to sit next to the
+# built exe (or be on PATH) to run.
+
+ifeq ($(OS),Windows_NT)
+dlls:
+	copy /Y libs\windows\*.dll . >nul
+else
+dlls:
+endif
+
+.PHONY: dlls
 
 
 # ============================================================
@@ -122,16 +143,16 @@ input_test_DEPS := \
     Input
 
 character_test_DEPS := \
-    Character Sprite Animation Texture Input HitBox Renderer
+    Character Sprite Animation Texture Input HitBox Renderer AudioManager
 
 hud_test_DEPS := \
-    Character HUD Sprite Animation Texture Input HitBox Renderer Font
+    Character HUD Sprite Animation Texture Input HitBox Renderer Font AudioManager
 
 round_timer_test_DEPS := \
-    RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
+    RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font AudioManager
 
 camera_test_DEPS := \
-    Camera RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
+    Camera RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font AudioManager
 
 audio_manager_test_DEPS := \
     AudioManager
@@ -179,10 +200,13 @@ $(TEST_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp | $(TEST_BUILD_DIR)
 
 define MAKE_TEST
 
-$1: $(TEST_BUILD_DIR)/$1.o $$(addprefix $(BUILD_DIR)/,$$($1_DEPS:=.o))
+$1$(EXE_EXT): $(TEST_BUILD_DIR)/$1.o $$(addprefix $(BUILD_DIR)/,$$($1_DEPS:=.o)) | dlls
 	$$(CXX) $$^ -o $$@ $$(LINKER)
 
+ifneq ($(EXE_EXT),)
+$1: $1$(EXE_EXT)
 .PHONY: $1
+endif
 
 endef
 
