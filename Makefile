@@ -7,15 +7,13 @@ ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
     EXE_EXT     := .exe
     RM          := del /Q
-    # Adjusted MKDIR for Windows CMD compatibility
     MKDIR       := if not exist
 
-    # Added the required Windows and SDL2 libraries for static linking
     GRAPHICS_LIBS := -lmingw32 -lSDL2main -lSDL2 \
                      -lsetupapi -limm32 -lole32 -loleaut32 \
                      -luser32 -lgdi32 -lversion -lwinmm -lshell32 \
                      -lfreeglut -lopengl32 -lglu32
-    LDFLAGS_OS    :=
+    LDFLAGS_OS    := -Llibs/windows
 
 else
 
@@ -25,7 +23,7 @@ else
     MKDIR       := mkdir -p
 
     GRAPHICS_LIBS := -lGL -lGLU -lglut -lSDL2
-    LDFLAGS_OS    := -Wl,-rpath=libs
+    LDFLAGS_OS    := -Llibs/linux -Wl,-rpath=libs/linux
 
 endif
 
@@ -44,7 +42,7 @@ CXXFLAGS := -Iinclude \
             -O2 \
             -g3
 
-LINKER   := -Llibs $(LDFLAGS_OS) $(GRAPHICS_LIBS) -pthread -lm -ldl
+LINKER   := $(LDFLAGS_OS) $(GRAPHICS_LIBS) -pthread -lm -ldl
 
 
 # ============================================================
@@ -102,7 +100,6 @@ endif
 # Unit Tests
 # ============================================================
 
-# Each test lists the src modules it needs.
 texture_test_DEPS := \
     Texture
 
