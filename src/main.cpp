@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(title);
-    // glutFullScreen();
+    glutFullScreen();
 
     game.init();
 

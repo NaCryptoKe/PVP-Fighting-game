@@ -6,20 +6,22 @@ ifeq ($(OS),Windows_NT)
 
 	DETECTED_OS := Windows
 	EXE_EXT     := .exe
-	RM          := del /Q
-	MKDIR       := if not exist
+	RM          := del /Q /F
+	MKDIR        = if not exist "$(1)" mkdir "$(1)"
 
-	GRAPHICS_LIBS := -lfreeglut -lopengl32 -lglu32
-	LDFLAGS_OS    :=
+	GRAPHICS_LIBS := -lfreeglut -lopengl32 -lglu32 -lmingw32 -lSDL2main -lSDL2
+	EXTRA_LIBS    := -lm
+	LDFLAGS_OS    := -static-libgcc -static-libstdc++
 
 else
 
 	DETECTED_OS := $(shell uname -s)
 	EXE_EXT     :=
 	RM          := rm -f
-	MKDIR       := mkdir -p
+	MKDIR        = mkdir -p $(1)
 
 	GRAPHICS_LIBS := -lGL -lGLU -lglut -lSDL2
+	EXTRA_LIBS    := -pthread -lm -ldl
 	LDFLAGS_OS    := -Wl,-rpath=libs
 
 endif
@@ -39,7 +41,7 @@ CXXFLAGS := -Iinclude \
             -O2 \
             -g3
 
-LINKER   := -Llibs $(LDFLAGS_OS) $(GRAPHICS_LIBS) -pthread -lm -ldl
+LINKER   := -Llibs $(LDFLAGS_OS) $(GRAPHICS_LIBS) $(EXTRA_LIBS)
 
 
 # ============================================================
@@ -73,7 +75,7 @@ TARGET := fighting_game$(EXE_EXT)
 # Main Build
 # ============================================================
 
-all: $(TARGET)
+all: $(TARGET) dlls
 
 
 $(TARGET): $(OBJS)
@@ -86,7 +88,26 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
 
 
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	$(call MKDIR,$(BUILD_DIR))
+
+
+# ============================================================
+# Runtime DLLs (Windows only)
+# ============================================================
+
+# freeglut's import library (libfreeglut.dll.a) is hard-wired to look
+# for a file named "libfreeglut.dll" at runtime, but the DLL in libs/
+# is named "freeglut.dll" -- so we copy it under both names.
+
+ifeq ($(DETECTED_OS),Windows)
+dlls:
+	copy /Y libs\*.dll . >nul
+	copy /Y libs\freeglut.dll libfreeglut.dll >nul
+else
+dlls:
+endif
+
+.PHONY: dlls
 
 
 # ============================================================
@@ -130,16 +151,16 @@ input_test_DEPS := \
 	Input
 
 character_test_DEPS := \
-	Character Sprite Animation Texture Input HitBox Renderer
+	Character Sprite Animation Texture Input HitBox Renderer AudioManager
 
 hud_test_DEPS := \
-	Character HUD Sprite Animation Texture Input HitBox Renderer Font
+	Character HUD Sprite Animation Texture Input HitBox Renderer Font AudioManager
 
 round_timer_test_DEPS := \
-	RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
+	RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font AudioManager
 
 camera_test_DEPS := \
-	Camera RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font
+	Camera RoundTimer Character HUD Sprite Animation Texture Input HitBox Renderer Font AudioManager
 
 audio_manager_test_DEPS := \
 	AudioManager
@@ -169,7 +190,7 @@ TEST_NAMES := \
 # ============================================================
 
 $(TEST_BUILD_DIR):
-	mkdir -p $(TEST_BUILD_DIR)
+	$(call MKDIR,$(TEST_BUILD_DIR))
 
 
 # test/foo_test.cpp -> build/test/foo_test.o
@@ -183,10 +204,12 @@ $(TEST_BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp | $(TEST_BUILD_DIR)
 
 define MAKE_TEST
 
-$1: $(TEST_BUILD_DIR)/$1.o $$(addprefix $(BUILD_DIR)/,$$($1_DEPS:=.o))
+$1$(EXE_EXT): $(TEST_BUILD_DIR)/$1.o $$(addprefix $(BUILD_DIR)/,$$($1_DEPS:=.o))
 	$$(CXX) $$^ -o $$@ $$(LINKER)
 
 .PHONY: $1
+
+$1: $1$(EXE_EXT) dlls
 
 endef
 
@@ -206,10 +229,10 @@ tests: $(TEST_NAMES)
 # ============================================================
 
 clean:
-	rm -f $(TARGET)
-	rm -f $(BUILD_DIR)/*.o
-	rm -f $(TEST_BUILD_DIR)/*.o
-	rm -f *_test$(EXE_EXT)
+	-$(RM) $(TARGET)
+	-$(RM) $(BUILD_DIR)/*.o
+	-$(RM) $(TEST_BUILD_DIR)/*.o
+	-$(RM) *_test$(EXE_EXT)
 
 
 .PHONY: all tests clean
