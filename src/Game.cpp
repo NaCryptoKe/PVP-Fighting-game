@@ -145,14 +145,11 @@ void Game::reshape(int width, int height) {
         vpY = (height - vpHeight) / 2;
     }
 
+    // Maps the OpenGL rendering area to the letterboxed window space
     glViewport(vpX, vpY, vpWidth, vpHeight);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, 1920.0, 0.0, 1080.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    // REMOVED: glMatrixMode(GL_PROJECTION) and gluOrtho2D
+    // The dynamic Camera now handles projection every frame.
 
     updateDimensions(1920, 1080);
 }
@@ -325,11 +322,33 @@ void Game::update()
 
     resolveStageBounds();
     resolveCombat();
+
+    camera.follow(player1.getX(), player2.getX(), deltaTime);
+    camera.update(deltaTime);
 }
 
 void Game::render()
 {
     Renderer::clear(0.1f, 0.1f, 0.12f, 1.0f);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    float camX = camera.getCenterX() + camera.getOffsetX();
+    float camY = (1080.0f * 0.5f) + camera.getOffsetY(); // Fixed vertical center
+
+    float zoom = camera.getZoom();
+    float halfWidth = (1920.0f / zoom ) * 0.5f;
+    float halfHeight = (1080.0f / zoom ) * 0.5f;
+    
+    gluOrtho2D(
+        camX - halfWidth,
+        camX + halfHeight,
+        camY - halfHeight,
+        camY + halfHeight
+    );
+
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     gameFont.renderText(fpsString, 180.0f, 1030.0f, 1.0f, 1.0f, 0.0f);

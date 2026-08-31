@@ -8,6 +8,7 @@
 #include "src/Renderer.hpp"
 #include "src/Input.hpp"
 #include "src/Config.hpp"
+#include "src/Camera.hpp"
 
 class Game
 {
@@ -15,6 +16,8 @@ private:
     int windowWidth;
     int windowHeight;
     void calculateFPS();
+
+    Camera camera;
 
     Character player1;
     Character player2;
