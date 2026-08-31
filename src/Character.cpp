@@ -15,7 +15,7 @@ Character::Character()
 
         groundY(0.0f),
         gravity(2200.0f),     // tune to taste
-        jumpSpeed(1500.0f),   // tune to taste
+        jumpSpeed(3000.0f),   // tune to taste
         walkSpeed(300.0f),
 
         hasHitThisAttack(false),
@@ -269,23 +269,34 @@ void Character::handleInput(const InputManager& input)
     // --------------------------------------------------------
     // HORIZONTAL MOVEMENT
     // --------------------------------------------------------
+    // Absolute world directions - a "move right" input always moves
+    // the character right, regardless of which way they're currently
+    // facing. facingRight is purely cosmetic (sprite flip, hitbox
+    // mirroring via faceToward()) and intentionally has no bearing
+    // on movement direction. Tying movement to facingRight was the
+    // actual bug behind "pressing forward moves me backward": since
+    // faceToward() re-evaluates facing every frame based on relative
+    // X position, a fixed physical key (e.g. always-right D) could
+    // suddenly mean "move left" the instant the character ended up
+    // facing the other way (e.g. right after a jump crossup, or
+    // simply approaching from the other side).
 
-    bool movingForward = input.isActionHeld(InputAction::FORWARD);
+    bool movingRight = input.isActionHeld(InputAction::RIGHT);
 
-    bool movingBackward = input.isActionHeld(InputAction::BACKWARD);
+    bool movingLeft = input.isActionHeld(InputAction::LEFT);
 
-    if (movingForward && !movingBackward)
+    if (movingRight && !movingLeft)
     {
-        velocityX = facingRight ? walkSpeed : -walkSpeed;
+        velocityX = walkSpeed;
 
         if (onGround)
         {
             setState(CharacterState::WALKING);
         }
     }
-    else if (movingBackward && !movingForward)
+    else if (movingLeft && !movingRight)
     {
-        velocityX = facingRight ? -walkSpeed : walkSpeed;
+        velocityX = -walkSpeed;
 
         if (onGround)
         {

@@ -1,5 +1,4 @@
 #include "src/CharacterRoster.hpp"
-#include "src/Character.hpp"
 
 Character CharacterRoster::createCharacter(CharacterType type)
 {
@@ -16,7 +15,9 @@ Character CharacterRoster::createRyu()
 {
     Character character;
 
-    character.loadAnimation(CharacterState::IDLE, "./assets/ryu/idle/", 4, 0.16f, true);
+    character.loadIdleAnimation("./assets/ryu/idle/", 4, 0.16f);
+    character.loadJumpAnimation("./assets/characters/chun-li/jump/", 6, 0.16f);
+    character.loadWalkAnimation("./assets/characters/chun-li/walk/", 14, 0.16f);
 
     character.setHurtboxes(
         80.0f,

@@ -11,8 +11,8 @@ enum class InputAction
 {
     JUMP,
     CROUCH,
-    FORWARD,
-    BACKWARD,
+    LEFT,
+    RIGHT,
     LIGHT_PUNCH,
     LIGHT_KICK,
     HARD_PUNCH,
@@ -65,17 +65,34 @@ struct InputEvent
 // ============================================================
 //
 // Raw devices (GLUT keyboard callbacks, etc.) push discrete
-// press/release events here; InputManager::update() drains the
-// queue once per frame. Exposed publicly so:
+// press/release events here.
+//
+// IMPORTANT: this queue is shared by every InputManager (e.g. one
+// per player). InputManager::update() only PEEKS at pending events
+// (each manager checks every event against its own bindings) - it
+// does NOT remove them. The queue is only actually cleared once per
+// frame, via clearInputEvents(), which the caller must invoke after
+// EVERY InputManager sharing it has had its update() called that
+// frame. Without this two-step design, whichever InputManager's
+// update() ran first would destructively consume every event before
+// any other InputManager got a chance to see it - meaning a second
+// player's InputManager would never receive any input at all.
+//
+// Exposed publicly so:
 //   - new input backends can feed events without touching Input.cpp
 //   - tests can inject synthetic events without a live window
 //
 // The queue is a fixed-size ring buffer (see INPUT_BUFFER_SIZE in
-// Input.cpp). If update() isn't called often enough relative to the
-// event rate, older un-drained events can cause new ones to be
-// dropped - use takeDroppedInputEventCount() to detect this.
+// Input.cpp). If clearInputEvents() isn't called often enough
+// relative to the event rate, older un-cleared events can cause new
+// ones to be dropped - use takeDroppedInputEventCount() to detect
+// this.
 
 void pushInputEvent(KeyCode key, bool pressed);
+
+// Clears all pending input events. Call this exactly once per frame,
+// after every InputManager sharing this queue has had update() called.
+void clearInputEvents();
 
 // Returns how many events have been dropped due to a full buffer
 // since the last call, then resets the counter to 0.

@@ -21,15 +21,20 @@ namespace
     // detect an undersized buffer instead of silently losing input.
     int droppedEventCount = 0;
 
-    bool popInputEvent(InputEvent& event)
+    // Number of events currently buffered (accounting for wraparound).
+    int pendingInputEventCount()
     {
-        if (inputReadIndex == inputWriteIndex)
-            return false;
-        
-        event = inputBuffer[inputReadIndex];
+        if (inputWriteIndex >= inputReadIndex)
+            return inputWriteIndex - inputReadIndex;
 
-        inputReadIndex = (inputReadIndex + 1) % INPUT_BUFFER_SIZE;
-        return true;
+        return INPUT_BUFFER_SIZE - inputReadIndex + inputWriteIndex;
+    }
+
+    // Non-destructive read: offset 0 is the oldest pending event.
+    // Does NOT advance inputReadIndex - see clearInputEvents().
+    const InputEvent& peekInputEvent(int offset)
+    {
+        return inputBuffer[(inputReadIndex + offset) % INPUT_BUFFER_SIZE];
     }
 }
 
@@ -53,6 +58,11 @@ int takeDroppedInputEventCount()
     int count = droppedEventCount;
     droppedEventCount = 0;
     return count;
+}
+
+void clearInputEvents()
+{
+    inputReadIndex = inputWriteIndex;
 }
 
 // ============================================================
@@ -538,8 +548,8 @@ void InputManager::applyKeyboardDefaults()
 {
     setBinding(InputAction::JUMP,        KeyCode::W);
     setBinding(InputAction::CROUCH,      KeyCode::S);
-    setBinding(InputAction::FORWARD,     KeyCode::D);
-    setBinding(InputAction::BACKWARD,    KeyCode::A);
+    setBinding(InputAction::RIGHT,       KeyCode::D);
+    setBinding(InputAction::LEFT,        KeyCode::A);
 
     setBinding(InputAction::LIGHT_PUNCH, KeyCode::K);
     setBinding(InputAction::LIGHT_KICK,  KeyCode::L);
@@ -567,12 +577,12 @@ void InputManager::applyPadDefaults()
     );
 
     setBinding(
-        InputAction::FORWARD,
+        InputAction::RIGHT,
         KeyCode::PadStickRight
     );
 
     setBinding(
-        InputAction::BACKWARD,
+        InputAction::LEFT,
         KeyCode::PadStickLeft
     );
 
@@ -615,17 +625,24 @@ void InputManager::update()
 {
     // wasPressedThisFrame / wasReleasedThisFrame are one-shot flags:
     // they should only be true for the single update() call in which
-    // the transition happened, so clear them before draining new events.
+    // the transition happened, so clear them before reading new events.
     for (auto& entry : actionStates)
     {
         entry.second.wasPressedThisFrame  = false;
         entry.second.wasReleasedThisFrame = false;
     }
 
-    InputEvent event;
+    // Peek (not pop) - this queue is shared with every other
+    // InputManager (e.g. the other player), so we must not remove
+    // events here. The caller clears the queue once per frame, after
+    // every InputManager has had a chance to see everything in it
+    // (see clearInputEvents() in Input.hpp).
+    int count = pendingInputEventCount();
 
-    while (popInputEvent(event))
+    for (int i = 0; i < count; ++i)
     {
+        const InputEvent& event = peekInputEvent(i);
+
         int key = static_cast<int>(event.key);
         keyState[key] = event.pressed;
 

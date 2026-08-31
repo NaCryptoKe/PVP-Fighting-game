@@ -24,8 +24,8 @@ void Config::applyDefaults()
     // keyboard by default.
     player1Bindings[InputAction::JUMP]        = KeyCode::W;
     player1Bindings[InputAction::CROUCH]      = KeyCode::S;
-    player1Bindings[InputAction::FORWARD]     = KeyCode::D;
-    player1Bindings[InputAction::BACKWARD]    = KeyCode::A;
+    player1Bindings[InputAction::RIGHT]       = KeyCode::D;
+    player1Bindings[InputAction::LEFT]        = KeyCode::A;
     player1Bindings[InputAction::LIGHT_PUNCH] = KeyCode::K;
     player1Bindings[InputAction::LIGHT_KICK]  = KeyCode::L;
     player1Bindings[InputAction::HARD_PUNCH]  = KeyCode::J;
@@ -33,12 +33,23 @@ void Config::applyDefaults()
     player1Bindings[InputAction::BLOCK]       = KeyCode::Space;
     player1Bindings[InputAction::ENHANCE]     = KeyCode::U;
 
-    // Mirrors InputManager::applyPadDefaults() - player 2 on
-    // gamepad by default.
-    player2Bindings[InputAction::JUMP]        = KeyCode::PadStickUp;
-    player2Bindings[InputAction::CROUCH]      = KeyCode::PadStickDown;
-    player2Bindings[InputAction::FORWARD]     = KeyCode::PadStickRight;
-    player2Bindings[InputAction::BACKWARD]    = KeyCode::PadStickLeft;
+    // Player 2 on keyboard for now (J/K/L/I) rather than
+    // InputManager::applyPadDefaults()'s gamepad scheme, so P2 is
+    // testable without a controller connected.
+    //
+    // NOTE: this deliberately shares physical keys J/K/L/I with
+    // player 1's attack bindings above (HARD_PUNCH=J, LIGHT_PUNCH=K,
+    // LIGHT_KICK=L, HARD_KICK=I). That's an unavoidable conflict of
+    // testing two players on one keyboard with overlapping keysets -
+    // pressing 'j', for instance, will now move player 2 left AND
+    // throw player 1's hard punch at the same time. Fine for solo
+    // testing of either player, but not real simultaneous local
+    // play - swap player 2 back to applyPadDefaults()-style bindings
+    // (or different keys entirely) once ready for that.
+    player2Bindings[InputAction::JUMP]        = KeyCode::I;
+    player2Bindings[InputAction::CROUCH]      = KeyCode::K;
+    player2Bindings[InputAction::RIGHT]       = KeyCode::L;
+    player2Bindings[InputAction::LEFT]        = KeyCode::J;
     player2Bindings[InputAction::LIGHT_PUNCH] = KeyCode::PadSquare;
     player2Bindings[InputAction::LIGHT_KICK]  = KeyCode::PadCross;
     player2Bindings[InputAction::HARD_PUNCH]  = KeyCode::PadTriangle;
@@ -115,8 +126,8 @@ std::string Config::actionToString(InputAction action)
     {
         case InputAction::JUMP:         return "JUMP";
         case InputAction::CROUCH:       return "CROUCH";
-        case InputAction::FORWARD:      return "FORWARD";
-        case InputAction::BACKWARD:     return "BACKWARD";
+        case InputAction::LEFT:         return "LEFT";
+        case InputAction::RIGHT:        return "RIGHT";
         case InputAction::LIGHT_PUNCH:  return "LIGHT_PUNCH";
         case InputAction::LIGHT_KICK:   return "LIGHT_KICK";
         case InputAction::HARD_PUNCH:   return "HARD_PUNCH";
@@ -133,8 +144,8 @@ bool Config::stringToAction(const std::string& str, InputAction& out)
     static const std::unordered_map<std::string, InputAction> table = {
         { "JUMP",         InputAction::JUMP },
         { "CROUCH",       InputAction::CROUCH },
-        { "FORWARD",      InputAction::FORWARD },
-        { "BACKWARD",     InputAction::BACKWARD },
+        { "LEFT",         InputAction::LEFT },
+        { "RIGHT",        InputAction::RIGHT },
         { "LIGHT_PUNCH",  InputAction::LIGHT_PUNCH },
         { "LIGHT_KICK",   InputAction::LIGHT_KICK },
         { "HARD_PUNCH",   InputAction::HARD_PUNCH },

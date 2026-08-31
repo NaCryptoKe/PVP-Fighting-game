@@ -23,8 +23,8 @@ namespace
     constexpr std::array<ActionMapping, 10> ACTION_MAPPINGS = {{
         { InputAction::JUMP,        "JUMP" },
         { InputAction::CROUCH,      "CROUCH" },
-        { InputAction::FORWARD,     "FORWARD" },
-        { InputAction::BACKWARD,    "BACKWARD" },
+        { InputAction::LEFT,        "LEFT" },
+        { InputAction::RIGHT,       "RIGHT" },
         { InputAction::LIGHT_PUNCH, "LIGHT PUNCH" },
         { InputAction::LIGHT_KICK,  "LIGHT KICK" },
         { InputAction::HARD_PUNCH,  "HARD PUNCH" },
@@ -107,14 +107,19 @@ void updateInput([[maybe_unused]] int value)
     keyboardInput.update();
     padInput.update();
 
-    // 3. Print transitions
+    // 3. Clear the shared queue - must happen after BOTH managers
+    // above have had update() called, or whichever ran first would
+    // consume every event before the other ever saw it.
+    clearInputEvents();
+
+    // 4. Print transitions
     for (const auto& mapping : ACTION_MAPPINGS)
     {
         printActionState("KEYBOARD", mapping.name, keyboardInput, mapping.action);
         printActionState("GAMEPAD", mapping.name, padInput, mapping.action);
     }
 
-    // 4. Schedule next update
+    // 5. Schedule next update
     glutTimerFunc(16, updateInput, 0);
 }
 
@@ -159,8 +164,8 @@ int main(int argc, char** argv)
 
     printf("W       -> Jump\n");
     printf("S       -> Crouch\n");
-    printf("D       -> Forward\n");
-    printf("A       -> Backward\n");
+    printf("D       -> Right\n");
+    printf("A       -> Left\n");
     printf("K       -> LIGHT PUNCH\n");
     printf("L       -> LIGHT KICK\n");
     printf("J       -> HARD PUNCH\n");
@@ -176,8 +181,8 @@ int main(int argc, char** argv)
 
     printf("Left Stick Up       -> Jump\n");
     printf("Left Stick Down     -> Crouch\n");
-    printf("Left Stick Right    -> Forward\n");
-    printf("Left Stick Left     -> Backward\n");
+    printf("Left Stick Right    -> Right\n");
+    printf("Left Stick Left     -> Left\n");
 
     printf("Cross               -> LIGHT PUNCH\n");
     printf("Circle              -> LIGHT KICK\n");

@@ -27,7 +27,7 @@ void Game::init()
     // to render/update; everything below is optional and falls back
     // to idle if never loaded. Durations match the per-frame timings
     // used in test/character_test.cpp.
-    if (!player1.loadIdleAnimation("assets/sprites/row_04/", 4, 0.16f))
+    if (!player1.loadIdleAnimation("assets/characters/chun-li/idle/", 3, 0.16f))
         printf("Player 1 idle animation failed to load!\n");
     if (!player1.loadJumpAnimation("assets/characters/chun-li/jump/", 6, 0.10f))
         printf("Player 1 jump animation failed to load!\n");
@@ -299,12 +299,21 @@ void Game::update()
     p1Input.update();
     p2Input.update();
 
+    // This queue is shared between p1Input/p2Input (and fed by
+    // pollGamepad()/GLUT's keyboard callbacks above) - clearInputEvents()
+    // must run exactly once per frame, after every InputManager sharing
+    // it has had update() called, or whichever manager updates first
+    // would "steal" every event before the others ever see it. See
+    // Input.hpp.
+    clearInputEvents();
+
     int currentTime = glutGet(GLUT_ELAPSED_TIME);
     float deltaTime = (currentTime - lastTime) / 1000.0f;
     lastTime = currentTime;
 
-    // Auto-face the opponent before reading movement input, so
-    // FORWARD/BACKWARD stay relative to whoever's closer this frame.
+    // faceToward() only affects cosmetics (sprite flip, hitbox
+    // mirroring) - movement itself is absolute LEFT/RIGHT and no
+    // longer depends on facing (see Character::handleInput()).
     player1.faceToward(player2.getX());
     player2.faceToward(player1.getX());
 
