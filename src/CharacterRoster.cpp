@@ -15,9 +15,9 @@ Character CharacterRoster::createRyu()
 {
     Character character;
 
-    character.loadIdleAnimation("./assets/ryu/idle/", 4, 0.16f);
-    character.loadJumpAnimation("./assets/characters/chun-li/jump/", 6, 0.16f);
-    character.loadWalkAnimation("./assets/characters/chun-li/walk/", 14, 0.16f);
+    character.loadIdleAnimation("./assets/characters/ryu/idle/", 4, 0.16f);
+    character.loadJumpAnimation("./assets/characters/ryu/jump/", 6, 0.16f);
+    character.loadWalkAnimation("./assets/characters/ryu/walk/", 14, 0.16f);
 
     character.setHurtboxes(
         80.0f,

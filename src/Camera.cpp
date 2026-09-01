@@ -9,35 +9,34 @@
 // ============================================================
 
 Camera::Camera()
-    : intensity(0.0f),
-      duration(0.0f),
+    : centerX(800.0f),
+      targetCenterX(800.0f),
+      zoom(1.0f),
+      targetZoom(1.0f),
+      viewportWidth(800.0f),
+      viewportHeight(600.0f),
+      stageLeft(0.0f),
+      stageRight(1600.0f),
       offsetX(0.0f),
       offsetY(0.0f),
-      stageLeft(0.0f),
-      stageRight(0.0f),
-      viewportHeight(1920.0f),
-      viewportWidth(1080.0f),
-      centerX(0.0f),
-      zoom(1.0f) {}
+      shakeIntensity(0.0f),
+      shakeDuration(0.0f),
+      shakeTimer(0.0f){}
 
 
 // ============================================================
 // Shake
 // ============================================================
 
-void Camera::shake(float newIntensity, float newDuration)
+void Camera::shake(float intensity, float duration)
 {
-    // --------------------------------------------------------
-    // Ignore weaker shakes while a stronger shake is active.
-    // --------------------------------------------------------
-
-    if (newIntensity < intensity)
-        return;
-
-    intensity = newIntensity;
-    duration = newDuration;
+    if (shakeTimer <= 0.0f || intensity > shakeIntensity)
+    {
+        shakeIntensity = intensity;
+        shakeDuration = duration;
+        shakeTimer = duration;
+    }
 }
-
 
 // ============================================================
 // Update
@@ -45,59 +44,23 @@ void Camera::shake(float newIntensity, float newDuration)
 
 void Camera::update(float deltaTime)
 {
-    // --------------------------------------------------------
-    // No active shake
-    // --------------------------------------------------------
-
-    if (duration <= 0.0f)
+    if (shakeTimer > 0.0f)
     {
-        duration = 0.0f;
-        intensity = 0.0f;
+        shakeTimer -= deltaTime;
 
-        offsetX = 0.0f;
-        offsetY = 0.0f;
+        float progress = shakeTimer / shakeDuration;
+        float currentIntensity = shakeIntensity * progress;
 
-        return;
+        offsetX = ((rand() % 200 - 100) / 100.0f) * currentIntensity;
+        offsetY = ((rand() % 200 - 100) / 100.0f) * currentIntensity;
+
+        if (shakeTimer <= 0.0f)
+        {
+            shakeTimer = 0.0f;
+            offsetX = 0.0f;
+            offsetY = 0.0f;
+        }
     }
-
-    // --------------------------------------------------------
-    // Decrease remaining shake duration
-    // --------------------------------------------------------
-
-    duration -= deltaTime;
-
-    // --------------------------------------------------------
-    // Shake finished
-    // --------------------------------------------------------
-
-    if (duration <= 0.0f)
-    {
-        duration = 0.0f;
-        intensity = 0.0f;
-
-        offsetX = 0.0f;
-        offsetY = 0.0f;
-
-        return;
-    }
-
-    // --------------------------------------------------------
-    // Generate random offset
-    // --------------------------------------------------------
-
-    float randomX =
-        static_cast<float>(std::rand()) / RAND_MAX;
-
-    float randomY =
-        static_cast<float>(std::rand()) / RAND_MAX;
-
-    // Convert [0, 1] to [-1, 1]
-
-    randomX = randomX * 2.0f - 1.0f;
-    randomY = randomY * 2.0f - 1.0f;
-
-    offsetX = randomX * intensity;
-    offsetY = randomY * intensity;
 }
 
 
@@ -132,8 +95,6 @@ void Camera::setStageBounds(float left, float right)
 {
     stageLeft = left;
     stageRight = right;
-
-    centerX = (stageLeft + stageRight) * 0.5f;
 }
 
 void Camera::setViewportSize(float width, float height) 
@@ -146,41 +107,33 @@ void Camera::setViewportSize(float width, float height)
 // Framing Logic (midpoint, Zoom Interpolation & Clamping)
 // ============================================================
 
-void Camera::follow(float p1X, float p2X, float deltaTime)
+void Camera::follow(float player1X, float player2X, float deltaTime)
 {
-    // 1. Calculate player distance & target zoom level
-    float distance = std::abs(p1X - p2X);
+    // Target center is midpoint between players
+    targetCenterX = (player1X + player2X) * 0.5f;
 
-    // Map distance [Near distance, Far distance] -> [0.0, 1.0]
-    float t = (distance - NEAR_DISTANCE) / (FAR_DISTANCE - NEAR_DISTANCE);
-    t = std::clamp(t, 0.0f, 1.0f);
+    // Calculate required zoom based on player separation + padding (150px safety margin)
+    float distance = std::abs(player1X - player2X) + 150.0f;
+    float desiredVisibleWidth = std::max(distance, 600.0f);
+    
+    targetZoom = viewportWidth / desiredVisibleWidth;
+    targetZoom = std::clamp(targetZoom, MIN_ZOOM, MAX_ZOOM);
 
-    // Interpolate between MAX_ZOOM (close - up) and MIN_ZOOM (wide view)
-    float targetZoom = MAX_ZOOM - t * (MAX_ZOOM - MIN_ZOOM);
+    // Smoothly interpolate zoom and horizontal position
+    zoom += (targetZoom - zoom) * 8.0f * deltaTime;
+    centerX += (targetCenterX - centerX) * 8.0f * deltaTime;
 
-    // 2. Calculate target midpoint between both players
-    float targetCenterX = (p1X + p2X) * 0.5f;
+    // Clamp camera center so view does not extend outside stage bounds
+    float halfVisibleWidth = (viewportWidth / zoom) * 0.5f;
+    float minCenterX = stageLeft + halfVisibleWidth;
+    float maxCenterX = stageRight - halfVisibleWidth;
 
-    // 3. Clamp targetCenterX so the visible viewport edge never exceeds the stage's bound
-    // Visible world width expands as zoom decreases
-    float halfVisibleWidth = (viewportWidth / targetZoom) * 0.5f;
-
-    // Check if the stage is wider than the visible screen area at this zoom 
-    if ((stageRight - stageLeft) > (halfVisibleWidth * 2.0f))
+    if (minCenterX > maxCenterX)
     {
-        float minCenterX = stageLeft + halfVisibleWidth;
-        float maxCenterX = stageRight - halfVisibleWidth;
-        targetCenterX = std::clamp(targetCenterX, minCenterX, maxCenterX);
+        centerX = (stageLeft + stageRight) * 0.5f;
     }
     else
     {
-        // If the stage is narrower than the visible view, center on the stage midpoint
-        targetCenterX = (stageLeft + stageRight) * 0.5f;
+        centerX = std::clamp(centerX, minCenterX, maxCenterX);
     }
-
-    // 4. Frame-rate independent Lerp to smoothly move current state to target
-    float lerpFactor = 1.0f - std::exp(-FOLLOW_SPEED * deltaTime);
-
-    centerX += (targetCenterX - centerX) * lerpFactor;
-    zoom    += (targetZoom - zoom) * lerpFactor;
 }

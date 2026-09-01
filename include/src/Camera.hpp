@@ -7,7 +7,9 @@ private:
     // ------------------------------------------------------------
     // Shake
     // ------------------------------------------------------------
-    float intensity;
+    float shakeIntensity;
+    float shakeDuration;
+    float shakeTimer;
     float duration;
 
     float offsetX;
@@ -29,13 +31,15 @@ private:
     float viewportHeight;
 
     float centerX; // current, smoothed toward target each frame
+    float targetCenterX;
     float zoom;    // current, smoothed toward target each frame
+    float targetZoom;
 
-    static constexpr float MIN_ZOOM = 0.72f;       // widest  - players far apart
-    static constexpr float MAX_ZOOM = 1.15f;       // closest - players close together
-    static constexpr float NEAR_DISTANCE = 220.0f; // at/below this gap -> MAX_ZOOM
-    static constexpr float FAR_DISTANCE = 1100.0f; // at/above this gap -> MIN_ZOOM
-    static constexpr float FOLLOW_SPEED = 4.0f;    // higher = snappier camera
+    static constexpr float MIN_ZOOM = 0.72f;                // widest  - players far apart
+    static constexpr float MAX_ZOOM = 1.15f;                // closest - players close together
+    static constexpr float NEAR_DISTANCE = 220.0f;      // at/below this gap -> MAX_ZOOM
+    static constexpr float FAR_DISTANCE = 1100.0f;       // at/above this gap -> MIN_ZOOM
+    static constexpr float FOLLOW_SPEED = 4.0f;         // higher = snappier camera
 
 public:
     Camera();
@@ -72,7 +76,7 @@ public:
     // Recomputes target pan position and zoom level from both
     // players' X positions, and smoothly moves the camera toward
     // that target. Call once per frame, alongside update().
-    void follow(float p1X, float p2X, float deltaTime);
+    void follow(float player1X, float player2X, float deltaTime);
 
     float getCenterX() const; // world X the camera is centered on
     float getZoom() const;    // scale multiplier - see MIN_ZOOM/MAX_ZOOM

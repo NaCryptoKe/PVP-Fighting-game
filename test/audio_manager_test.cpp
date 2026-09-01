@@ -30,3 +30,4 @@ int main() {
     return 0; // Destructor handles cleanup automatically
 }
 
+// run with: g++ -std=c++17 -Wall -Wextra -Iinclude src/AudioManager.cpp test/audio_manager_test.cpp -o audio_manager_test && ./audio_manager_test
