@@ -6,9 +6,12 @@ void RoundTimer::reset(int time)
     accumulator = 0.0f;
 }
 
+
+// When pausing instead of reseting the timer to reamining seconds
+// We just pass 0 as delta time
 void RoundTimer::update(float deltaTime)
 {
-    if (second <= 0)
+    if (isExpired())
         return;
 
     accumulator += deltaTime;

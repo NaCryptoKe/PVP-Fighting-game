@@ -13,9 +13,7 @@ enum class GameState
     ROUND_OVER,
     MATCH_OVER,
 
-    SETTINGS,
-    
-    GAME_OVER
+    SETTINGS
 };
 
 #endif // GAME_STATE_HPP

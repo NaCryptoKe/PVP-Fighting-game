@@ -3,6 +3,107 @@
 #include <algorithm>
 #include <cmath>
 
+void Game::enterState(GameState state)
+{
+    switch (state)
+    {
+        case GameState::MAIN_MENU:
+            // - Start playing main menu BGM loop
+            // - Reset menu cursor/selection back to top item ("Fight")
+            break;
+
+        case GameState::CHARACTER_SELECT:
+            // - Load character roster portraits and model previews
+            // - Reset P1 and P2 selection state to "unconfirmed"
+            break;
+
+        case GameState::FIGHTING:
+            // - Reset RoundTimer (e.g., roundTimer.reset(90))
+            // - Spawn P1 and P2 at starting stage positions with 100% health
+            // - Clear existing projectile/hitbox entities
+            // - Switch BGM to chosen stage music track
+            break;
+
+        case GameState::PAUSED:
+            // - Pause audio channels/effects (except pause menu UI sounds)
+            // - Set UI focus to "Resume" menu option
+            // - Capture screen blur or dark overlay snapshot
+            break;
+
+        case GameState::ROUND_OVER:
+            // - Play "K.O." or "Time Up" announcer sound effect
+            // - Disable character movement and attack inputs
+            // - Increment round win counter for the winning player
+            // - Trigger hit-freeze or slow-motion camera effect
+            break;
+
+        case GameState::MATCH_OVER:
+            // - Play victory screen BGM and winner announcer line
+            // - Display final match scores and rematch UI overlay
+            // - Unlock any achievements earned during the match
+            break;
+
+        case GameState::SETTINGS:
+            // - Load current settings from Config object into UI controls
+            // - Highlight default setting field (e.g., Master Volume)
+            break;
+    }
+}
+
+void Game::exitState(GameState state)
+{
+    switch (state)
+    {
+        case GameState::MAIN_MENU:
+            // - Fade out or stop main menu BGM
+            break;
+
+        case GameState::CHARACTER_SELECT:
+            // - Free pre-rendered portrait textures/model previews from VRAM
+            break;
+
+        case GameState::FIGHTING:
+            // - Stop stage combat music
+            // - Clean up remaining particle effects or dynamic debris
+            break;
+
+        case GameState::PAUSED:
+            // - Resume audio channels/effects
+            // - Remove dark overlay/blur filter
+            break;
+
+        case GameState::ROUND_OVER:
+            // - Reset screen flash / camera shake effects
+            break;
+
+        case GameState::MATCH_OVER:
+            // - Reset match win counters for both players back to 0
+            break;
+
+        case GameState::SETTINGS:
+            // - Save changes to "config.ini" on disk (e.g., config.save("config.ini"))
+            break;
+    }
+}
+
+void Game::requestStateChange(GameState newState)
+{
+    pendingState = newState;
+    stateChangeRequested = true;
+}
+
+void Game::processStateChange()
+{
+    if (!stateChangeRequested || currentState == pendingState)
+        return;
+
+    exitState(currentState);
+    currentState = pendingState;
+    enterState(currentState);
+
+    stateChangeRequested = false;
+}
+
 char fps[] = "FPS: ";
 char fpsString[32] = "0.0";
 int frameCount = 0;
@@ -289,44 +390,91 @@ void Game::drawDebugBoxes(Character &c)
 
 void Game::update()
 {
+    // ============================================================
+    // 1. Global Per-Frame Housekeeping & Input Polling
+    // ============================================================
     calculateFPS();
-
     pollGamepad();
 
+    // Process queued state changes from previous frame (e.g. Pause pressed, KO triggered)
+    processStateChange();
+
+    // Update input state machines & clear shared queue
     p1Input.update();
     p2Input.update();
-
-    // This queue is shared between p1Input/p2Input (and fed by
-    // pollGamepad()/GLUT's keyboard callbacks above) - clearInputEvents()
-    // must run exactly once per frame, after every InputManager sharing
-    // it has had update() called, or whichever manager updates first
-    // would "steal" every event before the others ever see it. See
-    // Input.hpp.
     clearInputEvents();
 
+    // Compute Delta Time
     int currentTime = glutGet(GLUT_ELAPSED_TIME);
     float deltaTime = (currentTime - lastTime) / 1000.0f;
     lastTime = currentTime;
 
-    // faceToward() only affects cosmetics (sprite flip, hitbox
-    // mirroring) - movement itself is absolute LEFT/RIGHT and no
-    // longer depends on facing (see Character::handleInput()).
-    player1.faceToward(player2.getX());
-    player2.faceToward(player1.getX());
+    // ============================================================
+    // 2. State-Specific Gameplay Logic
+    // ============================================================
+    switch (currentState)
+    {
+        case GameState::FIGHTING:
+        {
+            // Advance round timer
+            roundTimer.update(deltaTime);
 
-    player1.handleInput(p1Input);
-    player2.handleInput(p2Input);
+            // Check if time expired
+            if (roundTimer.isExpired())
+            {
+                requestStateChange(GameState::ROUND_OVER);
+                break;
+            }
 
-    player1.update(deltaTime);
-    player2.update(deltaTime);
+            // Facing direction (cosmetics & hitbox orientation)
+            player1.faceToward(player2.getX());
+            player2.faceToward(player1.getX());
 
-    resolveStageBounds();
-    resolveCombat();
+            // Process combat movement & inputs
+            player1.handleInput(p1Input);
+            player2.handleInput(p2Input);
 
-    camera.follow(player1.getX(), player2.getX(), deltaTime);
-    camera.update(deltaTime);
+            // Physics & animation step
+            player1.update(deltaTime);
+            player2.update(deltaTime);
+
+            // Collisions & health checks
+            resolveStageBounds();
+            resolveCombat();
+
+            // Check if a player lost all health
+            if (player1.getHealth() <= 0 || player2.getHealth() <= 0)
+            {
+                requestStateChange(GameState::ROUND_OVER);
+                break;
+            }
+
+            // Camera tracking
+            camera.follow(player1.getX(), player2.getX(), deltaTime);
+            camera.update(deltaTime);
+            break;
+        }
+
+        case GameState::PAUSED:
+            // Input managers are already updated above to detect "Unpause" button presses.
+            // Player movement, physics, RoundTimer, and combat resolution are deliberately skipped.
+            break;
+
+        case GameState::ROUND_OVER:
+            // Let the camera continue smoothly tracking or run round-end camera zoom
+            camera.update(deltaTime);
+            
+            // Advance KO/Round-over animation timer; once finished, transition to FIGHTING or MATCH_OVER
+            break;
+
+        case GameState::MAIN_MENU:
+        case GameState::CHARACTER_SELECT:
+        case GameState::SETTINGS:
+        case GameState::MATCH_OVER:
+            // Handle menu specific updates or UI navigation here
+            break;
+    }
 }
-
 void Game::render()
 {
     Renderer::clear(0.1f, 0.1f, 0.12f, 1.0f);

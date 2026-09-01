@@ -9,6 +9,8 @@
 #include "src/Input.hpp"
 #include "src/Config.hpp"
 #include "src/Camera.hpp"
+#include "src/RoundTimer.hpp"
+#include "src/GameState.hpp"
 
 class Game
 {
@@ -28,6 +30,15 @@ private:
     Config config;
     static constexpr const char* CONFIG_PATH = "config.ini";
 
+    RoundTimer roundTimer;
+
+    GameState currentState = GameState::MAIN_MENU;
+    GameState pendingState = GameState::MAIN_MENU;
+    bool stateChangeRequested = false;
+
+    void exitState(GameState state);
+    void enterState(GameState state);
+
     Font gameFont;
 
     int lastTime;
@@ -45,5 +56,8 @@ public:
     void render();
     void update();
     void reshape(int width, int height);
+
+    void requestStateChange(GameState newState);
+    void processStateChange();
 };
 #endif // GAME_HPP

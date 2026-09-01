@@ -20,8 +20,6 @@ void Config::applyDefaults()
     player1Bindings.clear();
     player2Bindings.clear();
 
-    // Mirrors InputManager::applyKeyboardDefaults() - player 1 on
-    // keyboard by default.
     player1Bindings[InputAction::JUMP]        = KeyCode::W;
     player1Bindings[InputAction::CROUCH]      = KeyCode::S;
     player1Bindings[InputAction::RIGHT]       = KeyCode::D;
@@ -33,23 +31,10 @@ void Config::applyDefaults()
     player1Bindings[InputAction::BLOCK]       = KeyCode::Space;
     player1Bindings[InputAction::ENHANCE]     = KeyCode::U;
 
-    // Player 2 on keyboard for now (J/K/L/I) rather than
-    // InputManager::applyPadDefaults()'s gamepad scheme, so P2 is
-    // testable without a controller connected.
-    //
-    // NOTE: this deliberately shares physical keys J/K/L/I with
-    // player 1's attack bindings above (HARD_PUNCH=J, LIGHT_PUNCH=K,
-    // LIGHT_KICK=L, HARD_KICK=I). That's an unavoidable conflict of
-    // testing two players on one keyboard with overlapping keysets -
-    // pressing 'j', for instance, will now move player 2 left AND
-    // throw player 1's hard punch at the same time. Fine for solo
-    // testing of either player, but not real simultaneous local
-    // play - swap player 2 back to applyPadDefaults()-style bindings
-    // (or different keys entirely) once ready for that.
-    player2Bindings[InputAction::JUMP]        = KeyCode::I;
-    player2Bindings[InputAction::CROUCH]      = KeyCode::K;
-    player2Bindings[InputAction::RIGHT]       = KeyCode::L;
-    player2Bindings[InputAction::LEFT]        = KeyCode::J;
+    player2Bindings[InputAction::JUMP]        = KeyCode::PadDPADUp;
+    player2Bindings[InputAction::CROUCH]      = KeyCode::PadDPADDown;
+    player2Bindings[InputAction::RIGHT]       = KeyCode::PadDPADRight;
+    player2Bindings[InputAction::LEFT]        = KeyCode::PadDPADLeft;
     player2Bindings[InputAction::LIGHT_PUNCH] = KeyCode::PadSquare;
     player2Bindings[InputAction::LIGHT_KICK]  = KeyCode::PadCross;
     player2Bindings[InputAction::HARD_PUNCH]  = KeyCode::PadTriangle;

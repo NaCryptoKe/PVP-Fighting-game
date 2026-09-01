@@ -1,225 +1,74 @@
-#include "GL/glut.h"
-#include <stdio.h>
+#include <iostream>
+#include <cassert>
 
 #include "src/RoundTimer.hpp"
-#include "src/HUD.hpp"
-#include "src/Font.hpp"
-#include "src/Renderer.hpp"
 
-// ============================================================
-// Global objects
-// ============================================================
-
-RoundTimer roundTimer;
-Font font;
-
-Character player;
-
-HUD hud(player, 450.0f);
-
-// ============================================================
-// Display
-// ============================================================
-
-void display()
+void test_initialization ()
 {
-    Renderer::clear(0.08f, 0.08f, 0.12f);
+    RoundTimer timer;
+    timer.reset(60);
 
-    glLoadIdentity();
-
-    // --------------------------------------------------------
-    // Get remaining seconds from RoundTimer
-    // and pass them directly to the HUD.
-    // --------------------------------------------------------
-
-    hud.drawTimer(
-        font,
-        roundTimer.getSecondsRemaining(),
-        100.0f
-    );
-
-    glutSwapBuffers();
+    assert(timer.getSecondsRemaining() == 60);
+    assert(!timer.isExpired());
 }
 
+void test_subsecond_accumulation()
+{
+    RoundTimer timer;
+    timer.reset(5);
 
-// ============================================================
-// Reshape
-// ============================================================
+    // Two 60 FPS frames (~0.0166s)
+    timer.update(0.0166f);
+    timer.update(0.0166f);
+    assert(timer.getSecondsRemaining() == 5);
 
-void reshape(int width, int height) {
-    if (height == 0) height = 1;
-
-    const float targetAspect = 1920.0f / 1080.0f;
-    float windowAspect = (float)width / (float)height;
-
-    int vpX = 0, vpY = 0;
-    int vpWidth = width, vpHeight = height;
-
-    if (windowAspect > targetAspect) {
-        vpWidth = static_cast<int>(height * targetAspect);
-        vpX = (width - vpWidth) / 2;
-    } else {
-        vpHeight = static_cast<int>(width / targetAspect);
-        vpY = (height - vpHeight) / 2;
-    }
-
-    hud.setViewportSize(
-        static_cast<float>(width),
-        static_cast<float>(height)
-    );
-
-    glViewport(vpX, vpY, vpWidth, vpHeight);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, 1920.0, 0.0, 1080.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    // Adding enough time to cross 1.0s
+    timer.update(0.9700f);
+    assert(timer.getSecondsRemaining() == 4);
 }
 
-// ============================================================
-// Update
-// ============================================================
-
-void update(int)
+void test_expiration_and_underflow()
 {
-    // Approximately 60 FPS
-    const float deltaTime = 1.0f / 60.0f;
+    RoundTimer timer;
+    timer.reset(2);
 
-    // --------------------------------------------------------
-    // Update the RoundTimer
-    // --------------------------------------------------------
+    timer.update(1.0f);
+    assert(timer.getSecondsRemaining() == 1);
+    assert(!timer.isExpired());
 
-    roundTimer.update(deltaTime);
+    timer.update(1.0f);
+    assert(timer.getSecondsRemaining() == 0);
+    assert(timer.isExpired());
 
-    // --------------------------------------------------------
-    // Print timer occasionally so we can verify it
-    // --------------------------------------------------------
-
-    static int previousSecond = -1;
-
-    int currentSecond =
-        roundTimer.getSecondsRemaining();
-
-    if (currentSecond != previousSecond)
-    {
-        printf(
-            "Timer: %d seconds | Expired: %s\n",
-            currentSecond,
-            roundTimer.isExpired() ? "YES" : "NO"
-        );
-
-        previousSecond = currentSecond;
-    }
-
-    // --------------------------------------------------------
-    // Redraw
-    // --------------------------------------------------------
-
-    glutPostRedisplay();
-
-    // --------------------------------------------------------
-    // Schedule next update
-    // --------------------------------------------------------
-
-    glutTimerFunc(16, update, 0);
+    // Further updates after expiration must stay at 0
+    timer.update(5.0f);
+    assert(timer.getSecondsRemaining() == 0);
+    assert(timer.isExpired());
 }
 
-
-// ============================================================
-// Main
-// ============================================================
-
-int main(int argc, char** argv)
+void test_lag_spike()
 {
-    // ========================================================
-    // 1. Initialize GLUT
-    // ========================================================
+    RoundTimer timer;
+    timer.reset(10);
 
-    glutInit(&argc, argv);
+    // A single frame taking 3.2 seconds (e.g., heavy loading or lag spike)
+    timer.update(3.2f);
+    assert(timer.getSecondsRemaining() == 7);
+    assert(!timer.isExpired());
+}
 
-    glutInitDisplayMode(
-        GLUT_DOUBLE |
-        GLUT_RGBA
-    );
+int main()
+{
+    std::cout << "Running RoundTimer unit tests...\n";
 
-    glutInitWindowSize(800, 600);
+    test_initialization();
+    test_subsecond_accumulation();
+    test_expiration_and_underflow();
+    test_lag_spike();
 
-    glutCreateWindow("Round Timer Test");
-
-
-    // ========================================================
-    // 2. Load font
-    // ========================================================
-
-    printf("Loading font...\n");
-
-    if (!font.load(
-        "assets/fonts/mainFont.ttf",
-        48.0f
-    ))
-    {
-        printf("ERROR: Failed to load font.\n");
-        return 1;
-    }
-
-    printf("Font loaded successfully.\n");
-
-
-    // ========================================================
-    // 3. Create HUD
-    // ========================================================
-
-    // hud = new HUD(
-    //     player,
-    //     450.0f
-    // );
-
-
-    // ========================================================
-    // 4. Initialize RoundTimer
-    // ========================================================
-
-    printf("\n");
-    printf("============================================================\n");
-    printf("                    ROUND TIMER TEST\n");
-    printf("============================================================\n");
-
-    roundTimer.reset(10);
-
-    printf(
-        "Starting timer: %d seconds\n",
-        roundTimer.getSecondsRemaining()
-    );
-
-
-    // ========================================================
-    // 5. Register GLUT callbacks
-    // ========================================================
-
-    glutDisplayFunc(display);
-    glutReshapeFunc(reshape);
-
-
-    // ========================================================
-    // 6. Start update loop
-    // ========================================================
-
-    glutTimerFunc(
-        16,
-        update,
-        0
-    );
-
-
-    // ========================================================
-    // 7. Start GLUT
-    // ========================================================
-
-    glutMainLoop();
-
-    // delete hud;
+    std::cout << "All test passed successfully!\n";
 
     return 0;
 }
+
+// Run with: g++ -std=c++17 -Wall -Wextra -Iinclude src/RoundTimer.cpp test/round_timer_test.cpp -o round_timer_test && ./round_timer_test
