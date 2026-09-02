@@ -1,48 +1,66 @@
 #include "GL/glut.h"
 
-#include "src/Game.hpp"
-#include "src/Input.hpp"
-
-#define MAJOR 0
-#define MINOR 5
+#include "core/Game.h"
 
 Game game;
 
-void display() { game.render(); }
-
-void update(int) 
+void display()
 {
-  game.update();
-  glutPostRedisplay();
-  glutTimerFunc(16, update, 0);
+    game.render();
 }
 
-void reshape(int width, int height) { game.reshape(width, height); }
-
-int main(int argc, char **argv) 
+void reshape(int width, int height)
 {
-    const char *str = "2D Fighting Game V";
-    char title[128];
-    snprintf(title, sizeof(title), "%s%d.%d", str, MAJOR, MINOR);
+    game.reshape(width, height);
+}
 
+void update(int)
+{
+    game.update();
+
+    glutPostRedisplay(); // Request a redraw
+    glutTimerFunc(16, update, 0); // Call update again in ~16ms or 60FPS
+}
+
+void keyboardDownCallback(unsigned char key, int x, int y)
+{
+    game.keyboardDownCallback(key, x, y);
+}
+
+void keyboardUpCallback(unsigned char key, int x, int y)
+{
+    game.keyboardUpCallback(key, x, y);
+}
+
+void specialKeyDownCallback(int key, int x, int y)
+{
+    game.specialKeyDownCallback(key, x, y);
+}
+
+void specialKeyUpCallback(int key, int x, int y)
+{
+    game.specialKeyUpCallback(key, x, y);
+}
+
+int main(int argc, char** argv)
+{
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowSize(800, 600);
-    glutInitWindowPosition(100, 100);
-    glutCreateWindow(title);
-    glutFullScreen();
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(600, 800);
+    glutCreateWindow("Stickman Kombat");
 
     game.init();
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    glutKeyboardFunc(handleKeyDown);
-    glutKeyboardUpFunc(handleKeyUp);
 
-    glutTimerFunc(0, update, 0);
-    glutIgnoreKeyRepeat(1);
+    glutKeyboardFunc(keyboardDownCallback);
+    glutKeyboardUpFunc(keyboardUpCallback);
+    glutSpecialFunc(specialKeyDownCallback);
+    glutSpecialUpFunc(specialKeyUpCallback);
+
+    glutTimerFunc(0, update, 0);    // Opted for glutTimerFunc instead of glutIdleFunc to avoid unnecessary CPU usage
 
     glutMainLoop();
-
     return 0;
 }
