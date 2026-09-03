@@ -123,8 +123,10 @@ void Game::update()
     }
   }
 
-  player1.collision(camera.leftLimit, camera.rightLimit);
-  player2.collision(camera.leftLimit, camera.rightLimit);
+  camera.updateBounds(player1, player2);
+  
+  player1.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
+  player2.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
 
   player1.update(deltaTime);
   player2.update(deltaTime);

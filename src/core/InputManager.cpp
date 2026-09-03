@@ -3,6 +3,7 @@
 void InputManager::updateKeyState()
 {
     previousKeyStates = currentKeyStates;
+    previousSpecialKeyStates = currentSpecialKeyStates; 
 }
 
 bool InputManager::isKeyDown(unsigned char key) const
@@ -38,25 +39,25 @@ void InputManager::handleKeyUp(unsigned char key, int x, int y) {
     currentKeyStates[key] = false;
 }
 
-bool InputManager::isSpecialKeyDown(unsigned char key) const
+bool InputManager::isSpecialKeyDown(int key) const
 {
-    auto it = currentKeyStates.find(key);
+    auto it = currentSpecialKeyStates.find(key);
 
     return (it != currentKeyStates.end()) ? it->second : false;
 }
-bool InputManager::isSpecialKeyPressed(unsigned char key) const
+bool InputManager::isSpecialKeyPressed(int key) const
 {
     bool isDownNow = isSpecialKeyDown(key);
-    auto it = previousKeyStates.find(key);
-    bool wasDownLastFrame = ( it != previousKeyStates.end()) ? it->second : false;
+    auto it = previousSpecialKeyStates.find(key);
+    bool wasDownLastFrame = ( it != previousSpecialKeyStates.end()) ? it->second : false;
 
     return isDownNow && !wasDownLastFrame;
 }
-bool InputManager::isSpecialKeyReleased(unsigned char key) const
+bool InputManager::isSpecialKeyReleased(int key) const
 {
     bool isDownNow = isSpecialKeyDown(key);
-    auto it = previousKeyStates.find(key);
-    bool wasDownLastFrame = ( it != previousKeyStates.end()) ? it->second : false;
+    auto it = previousSpecialKeyStates.find(key);
+    bool wasDownLastFrame = ( it != previousSpecialKeyStates.end()) ? it->second : false;
 
     return !isDownNow && wasDownLastFrame;
 }

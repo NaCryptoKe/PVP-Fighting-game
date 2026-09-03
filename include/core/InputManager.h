@@ -20,9 +20,9 @@ public:
     bool isKeyPressed(unsigned char key) const;
     bool isKeyReleased(unsigned char key) const;
 
-    bool isSpecialKeyDown(unsigned char key) const;
-    bool isSpecialKeyPressed(unsigned char key) const;
-    bool isSpecialKeyReleased(unsigned char key) const;
+    bool isSpecialKeyDown(int key) const;
+    bool isSpecialKeyPressed(int key) const;
+    bool isSpecialKeyReleased(int key) const;
 
     // GLUT callback handlers
     void handleKeyDown(unsigned char key, int x, int y);

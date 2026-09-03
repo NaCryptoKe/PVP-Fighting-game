@@ -12,7 +12,11 @@ struct Camera
     float leftLimit = -3000.0f;
     float rightLimit = 3000.0f;
 
+    static constexpr float STAGE_LEFT = -2000.0f;
+    static constexpr float STAGE_RIGHT = 2000.0f;
+
     void apply(Player &player1, Player &player2, float screenWidth = 1920.0f, float screenHeight = 1080.0f, float focusY = 150.0f);
+    void updateBounds(Player &player1, Player &player2, float screenWidth = 1920.0f);
 };
 
 #endif // CAMERA_H
