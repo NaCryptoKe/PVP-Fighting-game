@@ -2,6 +2,10 @@
 #include <iostream>
 
 #include "core/Game.h"
+
+
+std::string attackName = "hard hit";
+
 Game::Game() {}
 
 void Game::init()
@@ -26,6 +30,13 @@ void Game::render()
 
   player2.render();
   player2.renderHitBox();
+
+  player1.loadAttack(
+    AttackType::LIGHT_KICK,
+    2, 3, 1,
+    120.0f, 50.0f, 150.0f, 150.0f, 100.0f,
+    attackName  
+  );
 
   glLineWidth(3.0f);
   glBegin(GL_LINES);
@@ -114,6 +125,8 @@ void Game::update()
   if (input.isKeyDown('p')) player1.setState(PlayerState::ATTACK);
   if (input.isKeyDown('[')) player1.setState(PlayerState::BLOCK);
 
+  if (input.isKeyDown('z')) player1.renderDamageBox(attackName);
+
   if (!roundTimer.isExpired())
   {
     if (currentTime != roundTimer.getSecondsRemaining())
@@ -124,12 +137,12 @@ void Game::update()
   }
 
   camera.updateBounds(player1, player2);
-  
-  player1.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
-  player2.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
 
   player1.update(deltaTime);
   player2.update(deltaTime);
+
+  player1.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
+  player2.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
   resolvePlayerCollision();
   input.updateKeyState();
   roundTimer.update(deltaTime);

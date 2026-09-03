@@ -4,6 +4,9 @@
 #include "entities/PlayerState.h"
 #include "utils/AABB.h"
 
+#include <unordered_map>
+#include <string>
+
 class Player
 {
 private:
@@ -27,6 +30,9 @@ private:
 
     // Hurtbox and hitbox added here
     BOX hitbox;
+
+    // Attacks
+    std::unordered_map<std::string, AttackData> attacks;
 
 public:
     Player(float posX, float posY, float HP);
@@ -66,6 +72,25 @@ public:
     bool isGrounded() const;
     PlayerState getState() const;
     AABB getHitBox() const;
+
+
+
+    bool loadAttack(
+        AttackType type, 
+        int startupFrame, 
+        int activeFrame, 
+        int recoveryFrame, 
+        float damageAmount,
+        float hboffsetX,
+        float hboffsetY,
+        float width,
+        float height,
+        std::string &name,
+        float knockBackForce = 0.0f,
+        bool blockable = true
+    );
+
+    void renderDamageBox(std::string &name);
 
     // Temporary
     void collision(float leftLimit, float rightLimit);

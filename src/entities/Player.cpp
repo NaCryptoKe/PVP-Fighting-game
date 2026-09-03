@@ -190,6 +190,7 @@ void Player::collision(float leftLimit, float rightLimit)
     {
         positionX = rightLimit - playerRadius - padding; 
         velocityX = 0.0f;
+        if (velocityX > 0.0f) velocityX = 0.0f;
     }
 
     // Check Left Wall
@@ -197,5 +198,62 @@ void Player::collision(float leftLimit, float rightLimit)
     {
         positionX = leftLimit + playerRadius + padding;
         velocityX = 0.0f;
+        if (velocityX < 0.0f) velocityX = 0.0f;
     }
+}
+
+bool Player::loadAttack(
+    AttackType type, 
+    int startupFrame, 
+    int activeFrame, 
+    int recoveryFrame, 
+    float damageAmount,
+    float hboffsetX,
+    float hboffsetY,
+    float width,
+    float height,
+    std::string &name,
+    float knockBackForce,
+    bool blockable
+)
+{
+    AttackData attack;
+
+    attack.type = type;
+
+    attack.startupFrame = startupFrame;
+    attack.activeFrame = activeFrame;
+    attack.recoveryFrame = recoveryFrame;
+
+    attack.damageAmount = damageAmount;
+
+    attack.knockBackForce = knockBackForce;
+    attack.blockable = blockable;
+
+    BOX hitbox;
+    hitbox.offsetX = hboffsetX;
+    hitbox.offsetY = hboffsetY;
+    hitbox.width = width;
+    hitbox.height = height;
+
+    attack.hitBox = hitbox;
+
+    attacks[name] = attack;
+
+    return true;
+}
+
+void Player::renderDamageBox(std::string &name)
+{
+    BOX damage = attacks[name].hitBox;
+    damage.playerBox = damage.toWorld(positionX, positionY, facingRight);
+    AABB damageBox = damage.playerBox;
+    
+    glColor3f(0.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+        glVertex2f(damageBox.left, damageBox.top);
+        glVertex2f(damageBox.left, damageBox.bottom);
+        glVertex2f(damageBox.right, damageBox.bottom);
+        glVertex2f(damageBox.right, damageBox.top);
+    glEnd();
 }
