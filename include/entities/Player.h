@@ -12,8 +12,8 @@ private:
     float positionY;
     float velocityX;
     float velocityY;
-    const float jumpForce = 3.5f;
-    const float walk = 2.0f;
+    const float jumpForce = 2571.43f;
+    const float walk = 450.0f;
 
     // Combat Health
     float maxHealth;
@@ -67,6 +67,8 @@ public:
     PlayerState getState() const;
     AABB getHitBox() const;
 
+    // Temporary
+    void collision(float leftLimit, float rightLimit);
 };
 
 #endif // PLAYER_H

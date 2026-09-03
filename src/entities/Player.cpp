@@ -17,9 +17,17 @@ Player::Player(float posX, float posY, float HP)
 // Core game loops
 void Player::update(float deltaTime)
 {
-    float groundLevel = -0.5f;
+    float groundLevel = 120.0f;
 
-    if (positionY > groundLevel) velocityY -= 9.81f * deltaTime; // Will move to physics once finished
+    const float gravity = 7349.94f;
+
+    if (positionY > groundLevel)
+    {
+        float currentGravity = gravity;
+
+        if (velocityY < 0.0f) { currentGravity *= 1; }
+        velocityY -= currentGravity * deltaTime;
+    }
 
     positionX += velocityX * deltaTime;
     positionY += velocityY * deltaTime;
@@ -40,7 +48,7 @@ void Player::render()
     glPushMatrix();
 
     // Placheholders
-    float length = 0.2f;
+    float length = 300.0f;
 
     glTranslatef(positionX, positionY, 0.0f);
 
@@ -167,6 +175,27 @@ float Player::getVelocityY() const { return velocityY; }
 float Player::getHealth() const { return currentHealth; }
 float Player::getMaxHealth() const { return maxHealth; }
 bool Player::isFacingRight() const { return facingRight; }
-bool Player::isGrounded() const { return positionY <= -0.5f; }
+bool Player::isGrounded() const { return positionY <= 120.0f; }
 PlayerState Player::getState() const { return currentState; }
 AABB Player::getHitBox() const { return hitbox.playerBox; }
+
+// Temporary
+void Player::collision(float leftLimit, float rightLimit)
+{
+    float playerRadius = 150.0f; // Half the player's visual width
+    float padding = 50.0f;       // Distance from the exact screen edge
+
+    // Check Right Wall
+    if (positionX + playerRadius + padding >= rightLimit)
+    {
+        positionX = rightLimit - playerRadius - padding; 
+        velocityX = 0.0f;
+    }
+
+    // Check Left Wall
+    if (positionX - playerRadius - padding <= leftLimit)
+    {
+        positionX = leftLimit + playerRadius + padding;
+        velocityX = 0.0f;
+    }
+}

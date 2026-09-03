@@ -5,6 +5,7 @@
 #include "core/InputManager.h"
 #include "entities/Player.h"
 #include "utils/RoundTimer.h"
+#include "entities/Camera.h"
 
 class Game {
 public:
@@ -34,10 +35,12 @@ private:
 
   InputManager input;
 
-  Player player1{-0.5f, 0.0f, 1000.0f};
-  Player player2{0.0f, 0.0f, 1000.0f};
+  Player player1{480.0f, 120.0f, 1000.0f};
+  Player player2{1440.0f, 120.0f, 1000.0f};
 
   RoundTimer roundTimer;
+
+  Camera camera;
 
 };
 

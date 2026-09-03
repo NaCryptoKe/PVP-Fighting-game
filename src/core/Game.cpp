@@ -10,8 +10,8 @@ void Game::init()
 
   roundTimer.reset(90);
 
-  player1.setHitBox(-0.09f, 0.0,0.18f, 0.15f);
-  player2.setHitBox(-0.05f, 0.0f, 0.10f, 0.15f);
+  player1.setHitBox(-100.0f, 0.0, 200.0f, 300.0f);
+  player2.setHitBox(-50.0f, 0.0f, 100.0f, 300.0f);
 }
 
 void Game::render()
@@ -19,11 +19,20 @@ void Game::render()
   glClear(GL_COLOR_BUFFER_BIT);
   glLoadIdentity();
 
+  camera.apply(player1, player2);
+
   player1.render();
   player1.renderHitBox();
 
   player2.render();
   player2.renderHitBox();
+
+  glLineWidth(3.0f);
+  glBegin(GL_LINES);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glVertex2f(-2880.0f, 120.0f);
+    glVertex2f(4800.0f, 120.0f);
+  glEnd();
   
   glutSwapBuffers();
 }
@@ -31,20 +40,33 @@ void Game::render()
 void Game::reshape(int width, int height)
 {
     if (height == 0) height = 1;    // Preventing division by zero
-    glViewport(0, 0, width, height);
 
-    glMatrixMode(GL_PROJECTION); // Must re-implement this by my own, builtin functions aren't allowed
-    glLoadIdentity();
+    const float TARGET_ASPECT = 1920.0f / 1080.0f;
+    float aspectRatio = (float)width / (float) height;
 
-    float aspect = (float)width / (float)height;
-    if (width >= height)
+    int vpX = 0;
+    int vpY = 0;
+    int vpWidth = width;
+    int vpHeight = height;
+
+    if (aspectRatio > TARGET_ASPECT)
     {
-      glOrtho(-1.0 * aspect, 1.0 * aspect, -1.0, 1.0, -1.0, 1.0); // Must implement ortho by my self
+      // Window is wider than 16:9 (Pillarboxing)
+      vpWidth = static_cast<int>(height * TARGET_ASPECT);
+      vpX = (width - vpWidth) / 2;
     }
     else
     {
-      glOrtho(-1.0, 1.0, -1.0 / aspect, 1.0 / aspect, -1.0, 1.0);
+      // Window is narrower/taller than 16:9 (Letterboxing)
+      vpHeight = static_cast<int>(width / TARGET_ASPECT);
+      vpY = (height - vpHeight) / 2;
     }
+
+    glViewport(vpX, vpY, vpWidth, vpHeight);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, 1920.0, 0.0, 1080.0, -1.0, 1.0);
 
     glMatrixMode(GL_MODELVIEW);
 }
@@ -75,7 +97,7 @@ void Game::update()
       player1.stopX();
   }
 
-  if (input.isKeyPressed('w') || input.isKeyPressed('W')) 
+  if (input.isKeyDown('w') || input.isKeyDown('W')) 
   {
     player1.jump();
   }
@@ -100,6 +122,10 @@ void Game::update()
       currentTime = roundTimer.getSecondsRemaining();
     }
   }
+
+  player1.collision(camera.leftLimit, camera.rightLimit);
+  player2.collision(camera.leftLimit, camera.rightLimit);
+
   player1.update(deltaTime);
   player2.update(deltaTime);
   resolvePlayerCollision();
