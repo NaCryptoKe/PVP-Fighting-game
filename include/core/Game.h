@@ -25,6 +25,7 @@ public:
 
   // Collision Detection and hurtboxes
   void resolvePlayerCollision();
+  void resolveCombat();
 
   // Temporary
   int currentTime = 100;

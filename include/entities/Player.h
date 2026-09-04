@@ -34,6 +34,15 @@ private:
     // Attacks
     std::unordered_map<std::string, AttackData> attacks;
 
+    std::string currentAttackName = "";
+    float frameAccumulator = 0;
+    int frameCounter = 0;
+
+    bool hasHit = false;
+
+
+    int pastFrame = -1;
+
 public:
     Player(float posX, float posY, float HP);
 
@@ -85,15 +94,37 @@ public:
         float hboffsetY,
         float width,
         float height,
-        std::string &name,
+        const std::string &name,
         float knockBackForce = 0.0f,
         bool blockable = true
     );
 
-    void renderDamageBox(std::string &name);
+    void renderDamageBox(const std::string &name);
+    void performAttack(const std::string &name);
+
+    std::string getCurrentAttackName() const;
+
+    void updateAttack(float deltaTime);
+    bool isActiveAttack() const;
+
+    bool getHasHit() const { return hasHit; }
+    void markHit() { hasHit = true; }
+    bool getActiveAttackHitbox(AABB &outBox) const;
+    float getCurrentAttackDamage() const;
+    float getCurrentAttackKnockback() const;
+
+    void applyKnockback(float force, bool pushRight)
+    {
+        velocityX = pushRight ? force : -force;
+    }
 
     // Temporary
     void collision(float leftLimit, float rightLimit);
+    
+    void getFrameCounter()
+    {
+        printf("\nCurrent Frame: %d\n", frameCounter);
+    }
 };
 
 #endif // PLAYER_H

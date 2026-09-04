@@ -56,8 +56,8 @@ int main(int argc, char** argv)
 
     glutKeyboardFunc(keyboardDownCallback);
     glutKeyboardUpFunc(keyboardUpCallback);
-    glutSpecialFunc(specialKeyDownCallback);
-    glutSpecialUpFunc(specialKeyUpCallback);
+    // glutSpecialFunc(specialKeyDownCallback);
+    // glutSpecialUpFunc(specialKeyUpCallback);
 
     glutTimerFunc(0, update, 0);    // Opted for glutTimerFunc instead of glutIdleFunc to avoid unnecessary CPU usage
 

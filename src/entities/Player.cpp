@@ -23,11 +23,12 @@ void Player::update(float deltaTime)
 
     if (positionY > groundLevel)
     {
-        float currentGravity = gravity;
-
-        if (velocityY < 0.0f) { currentGravity *= 1; }
-        velocityY -= currentGravity * deltaTime;
+        velocityY -= gravity * deltaTime;
     }
+
+    const float friction = 8.0f;
+    velocityX -= velocityX * friction * deltaTime;
+    if (std::abs(velocityX) < 5.0f) velocityX = 0.0f;
 
     positionX += velocityX * deltaTime;
     positionY += velocityY * deltaTime;
@@ -212,13 +213,12 @@ bool Player::loadAttack(
     float hboffsetY,
     float width,
     float height,
-    std::string &name,
+    const std::string &name,
     float knockBackForce,
     bool blockable
 )
 {
     AttackData attack;
-
     attack.type = type;
 
     attack.startupFrame = startupFrame;
@@ -230,30 +230,158 @@ bool Player::loadAttack(
     attack.knockBackForce = knockBackForce;
     attack.blockable = blockable;
 
-    BOX hitbox;
-    hitbox.offsetX = hboffsetX;
-    hitbox.offsetY = hboffsetY;
-    hitbox.width = width;
-    hitbox.height = height;
+    BOX attackBox;
+    attackBox.offsetX = hboffsetX;
+    attackBox.offsetY = hboffsetY;
+    attackBox.width = width;
+    attackBox.height = height;
 
-    attack.hitBox = hitbox;
+    attack.hitBox = attackBox;
 
     attacks[name] = attack;
 
     return true;
 }
 
-void Player::renderDamageBox(std::string &name)
+void Player::renderDamageBox(const std::string &name)
 {
-    BOX damage = attacks[name].hitBox;
-    damage.playerBox = damage.toWorld(positionX, positionY, facingRight);
-    AABB damageBox = damage.playerBox;
+    printf("Is attack active: %s\n", isActiveAttack() ? "YES" : "NO");
+    if (isActiveAttack())
+    {
+        auto it = attacks.find(name);
+        if (it == attacks.end()) return; // Safe lookup without mutating map
+
+        BOX damage = it->second.hitBox;
+        damage.playerBox = damage.toWorld(positionX, positionY, facingRight);
+        AABB damageBox = damage.playerBox;
+        
+        glColor3f(0.0f, 1.0f, 1.0f);
+        glBegin(GL_QUADS);
+            glVertex2f(damageBox.left, damageBox.top);
+            glVertex2f(damageBox.left, damageBox.bottom);
+            glVertex2f(damageBox.right, damageBox.bottom);
+            glVertex2f(damageBox.right, damageBox.top);
+        glEnd();
+    }
+}
+
+void Player::performAttack(const std::string &name)
+{
+    if (currentState == PlayerState::ATTACK)
+    {
+        return;
+    }
+
+    if (!isGrounded())
+    {
+        return;
+    }
+
+    auto it = attacks.find(name);
+    if (it == attacks.end())
+    {
+        for (const auto &pair : attacks) { std::cout << "'" << pair.first << "' "; }
+        std::cout << "\n";
+        return;
+    }
+
+    currentAttackName = name;
+    currentState = PlayerState::ATTACK;
+
+    frameCounter = 0;
+    frameAccumulator = 0.0f;
+    hasHit = false;
+
+    velocityX = 0.0f;
+}
+
+std::string Player::getCurrentAttackName() const
+{
+    return currentAttackName;
+}
+
+void Player::updateAttack(float deltaTime)
+{
+    if (currentState != PlayerState::ATTACK || currentAttackName.empty()) return;
+
+    const AttackData &data = attacks.at(currentAttackName);
+
+    frameAccumulator += deltaTime;
+    const float frameDuration = 1.0f / 60.0f;   // ~0.01667 seconds/60FPS
+
+    while (frameAccumulator >= frameDuration)
+    {
+        frameCounter++;
+        frameAccumulator -= frameDuration;
+    }
+
+    int startupEnd = data.startupFrame;
+    int activeEnd = data.activeFrame + startupEnd;
+    int totalFrames = data.recoveryFrame + activeEnd;
+
+    if (frameCounter <= startupEnd)
+    {
+        // PHASE 1: STARTUP (Wind-up)
+        // Character prepares the move. Hitbox is OFF.
+    }
+    else if (frameCounter <= activeEnd)
+    {
+        // PHASE 2: ACTIVE (Damage Window)
+        // Hitbox is ON in world space. Collisions are tested during this window.
+        moveHitbox();
+    }
+    else if (frameCounter <= totalFrames)
+    {
+        // PHASE 3: RECOVERY (Cool-down)
+        // Character resets to neutral stance. Hitbox is OFF. Player cannot act.
+    }
+    else
+    {
+        // PHASE 4: COMPLETE
+        // Reset player back to IDLE state and clear attack variables
+        currentState = PlayerState::IDLE;
+        currentAttackName = "";
+        frameCounter = 0;
+        frameAccumulator = 0.0f;
+        hasHit = false;
+    }
     
-    glColor3f(0.0f, 1.0f, 1.0f);
-    glBegin(GL_QUADS);
-        glVertex2f(damageBox.left, damageBox.top);
-        glVertex2f(damageBox.left, damageBox.bottom);
-        glVertex2f(damageBox.right, damageBox.bottom);
-        glVertex2f(damageBox.right, damageBox.top);
-    glEnd();
+}
+
+bool Player::isActiveAttack() const
+{
+    if (currentState != PlayerState::ATTACK || currentAttackName.empty()) return false;
+
+    auto it = attacks.find(currentAttackName);
+    if (it == attacks.end()) return false;
+
+    const AttackData &data = it->second;
+
+    int startupEnd = data.startupFrame;
+    int activeEnd = data.activeFrame + startupEnd;
+
+    return (frameCounter > startupEnd && frameCounter <= activeEnd);
+}
+
+bool Player::getActiveAttackHitbox(AABB &outBox) const
+{
+    if (!isActiveAttack()) return false;
+
+    auto it = attacks.find(currentAttackName);
+    if (it == attacks.end()) return false;
+
+    outBox = it->second.hitBox.toWorld(positionX, positionY, facingRight);
+    return true;
+}
+
+float Player::getCurrentAttackDamage() const
+{
+    auto it = attacks.find(currentAttackName);
+    return (it != attacks.end()) ? it->second.damageAmount : 0.0f;
+}
+
+float Player::getCurrentAttackKnockback() const
+{
+    auto it = attacks.find(currentAttackName);
+    return (it != attacks.end()) ? it->second.knockBackForce : 0.0f;
 }
