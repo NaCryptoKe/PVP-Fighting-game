@@ -10,7 +10,6 @@
 class Player
 {
 private:
-    // Transform and movement physics
     float positionX;
     float positionY;
     float velocityX;
@@ -18,42 +17,33 @@ private:
     const float jumpForce = 2571.43f;
     const float walk = 450.0f;
 
-    // Combat Health
     float maxHealth;
     float currentHealth;
 
-    // Player orientation
-    bool facingRight; // true - facing right, false - facing left
-
-    // Player state
+    bool facingRight;
     PlayerState currentState;
 
-    // Hurtbox and hitbox added here
     BOX hitbox;
 
-    // Attacks
     std::unordered_map<std::string, AttackData> attacks;
-
     std::string currentAttackName = "";
     float frameAccumulator = 0;
     int frameCounter = 0;
-
     bool hasHit = false;
 
-
-    int pastFrame = -1;
+    float hitstunTimer = 0.0f;
 
 public:
     Player(float posX, float posY, float HP);
 
-    // Core game loops
-    void update(float deltaTime); // Update method to handle state changes and other changes
-    void render(); // Draw the player
+    void update(float deltaTime);
+    void render();
     void renderHitBox();
 
     void takeDamage(float damage);
+    void onHit(float damage, float knockback, bool pushRight, float hitstunTime = 0.3f);
+    void updateHitstun(float deltaTime);
 
-    // Movement methods
     void moveFront();
     void moveBack();
     void stopX();
@@ -61,7 +51,13 @@ public:
     void autoFace(float opponentX);
     void moveHitbox();
 
-    // Setters
+    void setBlocking(bool wantBlock);
+    bool isBlocking() const;
+    bool canAct() const;
+    bool canMove() const;
+    bool isDead() const;
+    void resetForRound(float posX, float posY);
+
     void setPositionX(float posX);
     void setPositionY(float posY);
     void setVelocityX(float velX);
@@ -70,7 +66,6 @@ public:
     void setState(PlayerState state);
     void setHitBox(float offsetX, float offsetY, float width, float height);
 
-    // Getters
     float getPositionX() const;
     float getPositionY() const;
     float getVelocityX() const;
@@ -82,49 +77,24 @@ public:
     PlayerState getState() const;
     AABB getHitBox() const;
 
-
-
     bool loadAttack(
-        AttackType type, 
-        int startupFrame, 
-        int activeFrame, 
-        int recoveryFrame, 
-        float damageAmount,
-        float hboffsetX,
-        float hboffsetY,
-        float width,
-        float height,
-        const std::string &name,
-        float knockBackForce = 0.0f,
-        bool blockable = true
+        AttackType type, int startupFrame, int activeFrame, int recoveryFrame,
+        float damageAmount, float hboffsetX, float hboffsetY, float width, float height,
+        const std::string &name, float knockBackForce = 0.0f, bool blockable = true
     );
 
     void renderDamageBox(const std::string &name);
     void performAttack(const std::string &name);
-
     std::string getCurrentAttackName() const;
-
     void updateAttack(float deltaTime);
     bool isActiveAttack() const;
-
-    bool getHasHit() const { return hasHit; }
-    void markHit() { hasHit = true; }
     bool getActiveAttackHitbox(AABB &outBox) const;
     float getCurrentAttackDamage() const;
     float getCurrentAttackKnockback() const;
+    bool getHasHit() const;
+    void markHit();
 
-    void applyKnockback(float force, bool pushRight)
-    {
-        velocityX = pushRight ? force : -force;
-    }
-
-    // Temporary
     void collision(float leftLimit, float rightLimit);
-    
-    void getFrameCounter()
-    {
-        printf("\nCurrent Frame: %d\n", frameCounter);
-    }
 };
 
 #endif // PLAYER_H

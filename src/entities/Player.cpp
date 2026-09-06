@@ -2,23 +2,16 @@
 
 #include "GL/glut.h"
 #include <iostream>
+#include <cmath>
 
-// Constructor
 Player::Player(float posX, float posY, float HP)
-    :   positionX(posX), 
-        positionY(posY), 
-        velocityX(0.0f), 
-        velocityY(0.0f),
-        maxHealth(HP), 
-        currentHealth(HP),
-        facingRight(true), 
-        currentState(PlayerState::IDLE) {}
+    :   positionX(posX), positionY(posY), velocityX(0.0f), velocityY(0.0f),
+        maxHealth(HP), currentHealth(HP),
+        facingRight(true), currentState(PlayerState::IDLE) {}
 
-// Core game loops
 void Player::update(float deltaTime)
 {
     float groundLevel = 120.0f;
-
     const float gravity = 7349.94f;
 
     if (positionY > groundLevel)
@@ -26,9 +19,13 @@ void Player::update(float deltaTime)
         velocityY -= gravity * deltaTime;
     }
 
-    const float friction = 8.0f;
-    velocityX -= velocityX * friction * deltaTime;
-    if (std::abs(velocityX) < 5.0f) velocityX = 0.0f;
+    // Knockback decay — only while stunned, so normal walk speed is untouched
+    if (currentState == PlayerState::HITSTUN)
+    {
+        const float friction = 8.0f;
+        velocityX -= velocityX * friction * deltaTime;
+        if (std::abs(velocityX) < 5.0f) velocityX = 0.0f;
+    }
 
     positionX += velocityX * deltaTime;
     positionY += velocityY * deltaTime;
@@ -37,7 +34,6 @@ void Player::update(float deltaTime)
     {
         positionY = groundLevel;
         velocityY = 0.0f;
-
         if (currentState == PlayerState::JUMP) currentState = PlayerState::IDLE;
     }
 
@@ -47,40 +43,25 @@ void Player::update(float deltaTime)
 void Player::render()
 {
     glPushMatrix();
-
-    // Placheholders
     float length = 300.0f;
-
     glTranslatef(positionX, positionY, 0.0f);
 
     glBegin(GL_QUADS);
         switch (currentState)
         {
-            case PlayerState::IDLE:
-                glColor3f(0.0f, 1.0f, 0.0f); // Green for IDLE
-                break;
-            case PlayerState::WALK:
-                glColor3f(0.0f, 0.0f, 1.0f); // Blue for WALK
-                break;
-            case PlayerState::RUN:
-                glColor3f(1.0f, 0.0f, 0.0f); // Red for RUN
-                break;
-            case PlayerState::JUMP:
-                glColor3f(1.0f, 1.0f, 0.0f); // Yellow for JUMP
-                break;
-            case PlayerState::ATTACK:
-                glColor3f(1.0f, 0.5f, 0.0f); // Orange for ATTACK
-                break;
-            case PlayerState::BLOCK:
-                glColor3f(0.5f, 0.5f, 0.5f); // Grey for BLOCK
-                break;
+            case PlayerState::IDLE:    glColor3f(0.0f, 1.0f, 0.0f); break;
+            case PlayerState::WALK:    glColor3f(0.0f, 0.0f, 1.0f); break;
+            case PlayerState::RUN:     glColor3f(1.0f, 0.0f, 0.0f); break;
+            case PlayerState::JUMP:    glColor3f(1.0f, 1.0f, 0.0f); break;
+            case PlayerState::ATTACK:  glColor3f(1.0f, 0.5f, 0.0f); break;
+            case PlayerState::BLOCK:   glColor3f(0.5f, 0.5f, 0.5f); break;
+            case PlayerState::HITSTUN: glColor3f(1.0f, 0.0f, 1.0f); break;
+            case PlayerState::DEATH:   glColor3f(0.1f, 0.1f, 0.1f); break;
         }
-
         glVertex2f(-length / 2.0f, 0.0f);
         glVertex2f( length / 2.0f, 0.0f);
         glVertex2f( length / 2.0f, length);
         glVertex2f(-length / 2.0f, length);
-        // Midpoint is located at the center of the feet
     glEnd();
 
     glPopMatrix();
@@ -99,39 +80,62 @@ void Player::renderHitBox()
 
 void Player::takeDamage(float damage)
 {
-    if (currentState == PlayerState::BLOCK) {
-        damage /= 4; // Reduce damage when blocking
-    }
-
+    if (currentState == PlayerState::BLOCK) damage /= 4.0f;
     currentHealth -= damage;
-    if (currentHealth <= 0) 
-    {
-        currentHealth = 0;
-        // Player is knocked out
-    } 
-    else { }// Not knocked out, deduct health
+    if (currentHealth <= 0.0f) currentHealth = 0.0f;
 }
 
-// Movement methods
-void Player::moveFront() 
+void Player::onHit(float damage, float knockback, bool pushRight, float hitstunTime)
+{
+    bool wasBlocking = (currentState == PlayerState::BLOCK);
+    takeDamage(damage);
+
+    if (currentHealth <= 0.0f)
+    {
+        currentState = PlayerState::DEATH;
+        velocityX = 0.0f;
+        return;
+    }
+
+    if (!wasBlocking)
+    {
+        velocityX = pushRight ? knockback : -knockback;
+        currentState = PlayerState::HITSTUN;
+        hitstunTimer = hitstunTime;
+    }
+}
+
+void Player::updateHitstun(float deltaTime)
+{
+    if (currentState != PlayerState::HITSTUN) return;
+
+    hitstunTimer -= deltaTime;
+    if (hitstunTimer <= 0.0f)
+    {
+        hitstunTimer = 0.0f;
+        currentState = PlayerState::IDLE;
+    }
+}
+
+void Player::moveFront()
 {
     facingRight ? velocityX = std::abs(walk) : velocityX = -std::abs(walk);
     if (isGrounded()) currentState = PlayerState::WALK;
 }
 
-void Player::moveBack() 
+void Player::moveBack()
 {
     !facingRight ? velocityX = std::abs(walk) : velocityX = -std::abs(walk);
     if (isGrounded()) currentState = PlayerState::WALK;
 }
 
-void Player::stopX() 
+void Player::stopX()
 {
     velocityX = 0.0f;
     currentState = PlayerState::IDLE;
 }
 
-void Player::jump() 
+void Player::jump()
 {
     if (isGrounded())
     {
@@ -142,8 +146,7 @@ void Player::jump()
 
 void Player::autoFace(float opponentX)
 {
-    if (positionX <= opponentX) facingRight = true;
-    else facingRight = false;
+    facingRight = (positionX <= opponentX);
 }
 
 void Player::moveHitbox()
@@ -151,24 +154,65 @@ void Player::moveHitbox()
     hitbox.playerBox = hitbox.toWorld(positionX, positionY, facingRight);
 }
 
-// Setters
+void Player::setBlocking(bool wantBlock)
+{
+    if (wantBlock)
+    {
+        if (canAct()) currentState = PlayerState::BLOCK;
+    }
+    else if (currentState == PlayerState::BLOCK)
+    {
+        currentState = PlayerState::IDLE;
+    }
+}
+
+bool Player::isBlocking() const { return currentState == PlayerState::BLOCK; }
+
+bool Player::canAct() const
+{
+    return currentState != PlayerState::ATTACK &&
+           currentState != PlayerState::HITSTUN &&
+           currentState != PlayerState::DEATH;
+}
+
+bool Player::canMove() const
+{
+    return canAct() && currentState != PlayerState::BLOCK;
+}
+
+bool Player::isDead() const { return currentState == PlayerState::DEATH; }
+
+void Player::resetForRound(float posX, float posY)
+{
+    positionX = posX;
+    positionY = posY;
+    velocityX = 0.0f;
+    velocityY = 0.0f;
+    currentHealth = maxHealth;
+    currentState = PlayerState::IDLE;
+    currentAttackName = "";
+    frameCounter = 0;
+    frameAccumulator = 0.0f;
+    hasHit = false;
+    hitstunTimer = 0.0f;
+    moveHitbox();
+}
+
 void Player::setPositionX(float posX) { positionX = posX; }
 void Player::setPositionY(float posY) { positionY = posY; }
 void Player::setVelocityX(float velX) { velocityX = velX; }
 void Player::setVelocityY(float velY) { velocityY = velY; }
 void Player::setFacingRight(bool isFacingRight) { facingRight = isFacingRight; }
 void Player::setState(PlayerState state) { currentState = state; }
-void Player::setHitBox(float offsetX, float offsetY, float width, float height) 
-{ 
+void Player::setHitBox(float offsetX, float offsetY, float width, float height)
+{
     hitbox.offsetX = offsetX;
     hitbox.offsetY = offsetY;
     hitbox.height = height;
     hitbox.width = width;
-
     hitbox.playerBox = hitbox.toWorld(offsetX, offsetY, facingRight);
 }
 
-// Getters
 float Player::getPositionX() const { return positionX; }
 float Player::getPositionY() const { return positionY; }
 float Player::getVelocityX() const { return velocityX; }
@@ -180,53 +224,17 @@ bool Player::isGrounded() const { return positionY <= 120.0f; }
 PlayerState Player::getState() const { return currentState; }
 AABB Player::getHitBox() const { return hitbox.playerBox; }
 
-// Temporary
-void Player::collision(float leftLimit, float rightLimit)
-{
-    float playerRadius = 150.0f; // Half the player's visual width
-    float padding = 50.0f;       // Distance from the exact screen edge
-
-    // Check Right Wall
-    if (positionX + playerRadius + padding >= rightLimit)
-    {
-        positionX = rightLimit - playerRadius - padding; 
-        velocityX = 0.0f;
-        if (velocityX > 0.0f) velocityX = 0.0f;
-    }
-
-    // Check Left Wall
-    if (positionX - playerRadius - padding <= leftLimit)
-    {
-        positionX = leftLimit + playerRadius + padding;
-        velocityX = 0.0f;
-        if (velocityX < 0.0f) velocityX = 0.0f;
-    }
-}
-
 bool Player::loadAttack(
-    AttackType type, 
-    int startupFrame, 
-    int activeFrame, 
-    int recoveryFrame, 
-    float damageAmount,
-    float hboffsetX,
-    float hboffsetY,
-    float width,
-    float height,
-    const std::string &name,
-    float knockBackForce,
-    bool blockable
-)
+    AttackType type, int startupFrame, int activeFrame, int recoveryFrame,
+    float damageAmount, float hboffsetX, float hboffsetY, float width, float height,
+    const std::string &name, float knockBackForce, bool blockable)
 {
     AttackData attack;
     attack.type = type;
-
     attack.startupFrame = startupFrame;
     attack.activeFrame = activeFrame;
     attack.recoveryFrame = recoveryFrame;
-
     attack.damageAmount = damageAmount;
-
     attack.knockBackForce = knockBackForce;
     attack.blockable = blockable;
 
@@ -235,69 +243,49 @@ bool Player::loadAttack(
     attackBox.offsetY = hboffsetY;
     attackBox.width = width;
     attackBox.height = height;
-
     attack.hitBox = attackBox;
 
     attacks[name] = attack;
-
     return true;
 }
 
 void Player::renderDamageBox(const std::string &name)
 {
-    if (isActiveAttack())
-    {
-        auto it = attacks.find(name);
-        if (it == attacks.end()) return; // Safe lookup without mutating map
+    if (!isActiveAttack()) return;
+    auto it = attacks.find(name);
+    if (it == attacks.end()) return;
 
-        BOX damage = it->second.hitBox;
-        damage.playerBox = damage.toWorld(positionX, positionY, facingRight);
-        AABB damageBox = damage.playerBox;
-        
-        glColor3f(0.0f, 1.0f, 1.0f);
-        glBegin(GL_QUADS);
-            glVertex2f(damageBox.left, damageBox.top);
-            glVertex2f(damageBox.left, damageBox.bottom);
-            glVertex2f(damageBox.right, damageBox.bottom);
-            glVertex2f(damageBox.right, damageBox.top);
-        glEnd();
-    }
+    BOX damage = it->second.hitBox;
+    damage.playerBox = damage.toWorld(positionX, positionY, facingRight);
+    AABB damageBox = damage.playerBox;
+
+    glColor3f(0.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+        glVertex2f(damageBox.left, damageBox.top);
+        glVertex2f(damageBox.left, damageBox.bottom);
+        glVertex2f(damageBox.right, damageBox.bottom);
+        glVertex2f(damageBox.right, damageBox.top);
+    glEnd();
 }
 
 void Player::performAttack(const std::string &name)
 {
-    if (currentState == PlayerState::ATTACK)
-    {
-        return;
-    }
-
-    if (!isGrounded())
-    {
-        return;
-    }
+    if (!canAct()) return;
+    if (currentState == PlayerState::BLOCK) return;
+    if (!isGrounded()) return;
 
     auto it = attacks.find(name);
-    if (it == attacks.end())
-    {
-        for (const auto &pair : attacks) { std::cout << "'" << pair.first << "' "; }
-        std::cout << "\n";
-        return;
-    }
+    if (it == attacks.end()) return;
 
     currentAttackName = name;
     currentState = PlayerState::ATTACK;
-
     frameCounter = 0;
     frameAccumulator = 0.0f;
     hasHit = false;
-
     velocityX = 0.0f;
 }
 
-std::string Player::getCurrentAttackName() const
-{
-    return currentAttackName;
-}
+std::string Player::getCurrentAttackName() const { return currentAttackName; }
 
 void Player::updateAttack(float deltaTime)
 {
@@ -306,8 +294,7 @@ void Player::updateAttack(float deltaTime)
     const AttackData &data = attacks.at(currentAttackName);
 
     frameAccumulator += deltaTime;
-    const float frameDuration = 1.0f / 60.0f;   // ~0.01667 seconds/60FPS
-
+    const float frameDuration = 1.0f / 60.0f;
     while (frameAccumulator >= frameDuration)
     {
         frameCounter++;
@@ -318,33 +305,14 @@ void Player::updateAttack(float deltaTime)
     int activeEnd = data.activeFrame + startupEnd;
     int totalFrames = data.recoveryFrame + activeEnd;
 
-    if (frameCounter <= startupEnd)
+    if (frameCounter > totalFrames)
     {
-        // PHASE 1: STARTUP (Wind-up)
-        // Character prepares the move. Hitbox is OFF.
-    }
-    else if (frameCounter <= activeEnd)
-    {
-        // PHASE 2: ACTIVE (Damage Window)
-        // Hitbox is ON in world space. Collisions are tested during this window.
-        moveHitbox();
-    }
-    else if (frameCounter <= totalFrames)
-    {
-        // PHASE 3: RECOVERY (Cool-down)
-        // Character resets to neutral stance. Hitbox is OFF. Player cannot act.
-    }
-    else
-    {
-        // PHASE 4: COMPLETE
-        // Reset player back to IDLE state and clear attack variables
         currentState = PlayerState::IDLE;
         currentAttackName = "";
         frameCounter = 0;
         frameAccumulator = 0.0f;
         hasHit = false;
     }
-    
 }
 
 bool Player::isActiveAttack() const
@@ -355,7 +323,6 @@ bool Player::isActiveAttack() const
     if (it == attacks.end()) return false;
 
     const AttackData &data = it->second;
-
     int startupEnd = data.startupFrame;
     int activeEnd = data.activeFrame + startupEnd;
 
@@ -365,7 +332,6 @@ bool Player::isActiveAttack() const
 bool Player::getActiveAttackHitbox(AABB &outBox) const
 {
     if (!isActiveAttack()) return false;
-
     auto it = attacks.find(currentAttackName);
     if (it == attacks.end()) return false;
 
@@ -383,4 +349,19 @@ float Player::getCurrentAttackKnockback() const
 {
     auto it = attacks.find(currentAttackName);
     return (it != attacks.end()) ? it->second.knockBackForce : 0.0f;
+}
+
+bool Player::getHasHit() const { return hasHit; }
+void Player::markHit() { hasHit = true; }
+
+void Player::collision(float leftLimit, float rightLimit)
+{
+    float playerRadius = 150.0f;
+    float padding = 50.0f;
+
+    if (positionX + playerRadius + padding >= rightLimit)
+        positionX = rightLimit - playerRadius - padding;
+
+    if (positionX - playerRadius - padding <= leftLimit)
+        positionX = leftLimit + playerRadius + padding;
 }
