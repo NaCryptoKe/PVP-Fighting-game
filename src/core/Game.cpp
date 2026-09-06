@@ -119,6 +119,20 @@ void Game::update()
     if (input.isKeyDown('w') || input.isKeyDown('W')) { player1.jump(); }
   }
 
+  if (player2.getState() != PlayerState::ATTACK)
+  {
+    // 1. Determine key states
+    bool moveLeftHeld  = input.isSpecialKeyDown(GLUT_KEY_LEFT);
+    bool moveRightHeld = input.isSpecialKeyDown(GLUT_KEY_RIGHT);
+
+    // 2. Relative Movement Logic
+    if (moveLeftHeld) { player2.isFacingRight() ? player2.moveBack() : player2.moveFront(); }
+    else if (moveRightHeld) { player2.isFacingRight() ? player2.moveFront() : player2.moveBack(); }
+    else { player2.stopX(); }
+
+    if (input.isSpecialKeyDown(GLUT_KEY_UP)) { player2.jump(); }
+  }
+
   // if (!roundTimer.isExpired())
   // {
   //   if (currentTime != roundTimer.getSecondsRemaining())
@@ -131,6 +145,7 @@ void Game::update()
   camera.updateBounds(player1, player2);
 
   player1.updateAttack(deltaTime);
+  player2.updateAttack(deltaTime);
 
   player1.update(deltaTime);
   player2.update(deltaTime);
@@ -154,11 +169,11 @@ void Game::keyboardUpCallback(unsigned char key, [[maybe_unused]]int x, [[maybe_
 }
 
 void Game::specialKeyDownCallback(int key, [[maybe_unused]]int x, [[maybe_unused]]int y) {
-  input.handleKeyDown(key, x, y);
+  input.handleSpecialKeyDown(key, x, y);
 }
 
 void Game::specialKeyUpCallback(int key, [[maybe_unused]]int x, [[maybe_unused]]int y) {
-  input.handleKeyUp(key, x, y);
+  input.handleSpecialKeyUp(key, x, y);
 }
 
 void Game::resolvePlayerCollision()
@@ -194,8 +209,8 @@ void Game::resolveCombat()
         if (BOX::intersects(attackBox, player2.getHitBox()))
         {
             player2.takeDamage(player1.getCurrentAttackDamage());
-            player1.markHit();
             player2.applyKnockback(player1.getCurrentAttackKnockback(), player1.isFacingRight());
+            player1.markHit();
         }
     }
 

@@ -6,64 +6,62 @@ void InputManager::updateKeyState()
     previousSpecialKeyStates = currentSpecialKeyStates; 
 }
 
+// STANDARD KEYS
+
 bool InputManager::isKeyDown(unsigned char key) const
 {
-    auto it = currentKeyStates.find(key);
-
-    return (it != currentKeyStates.end()) ? it->second : false;
+    return currentKeyStates[key];
 }
 
 bool InputManager::isKeyPressed(unsigned char key) const
 {
-    bool isDownNow = isKeyDown(key);
-    auto it = previousKeyStates.find(key);
-    bool wasDownLastFrame = ( it != previousKeyStates.end()) ? it->second : false;
-
-    return isDownNow && !wasDownLastFrame;
+    return currentKeyStates[key] && !previousKeyStates[key];
 }
 
 bool InputManager::isKeyReleased(unsigned char key) const
 {
-    bool isDownNow = isKeyDown(key);
-    auto it = previousKeyStates.find(key);
-    bool wasDownLastFrame = ( it != previousKeyStates.end()) ? it->second : false;
-
-    return !isDownNow && wasDownLastFrame;
+    return !currentKeyStates[key] && previousKeyStates[key];
 }
 
-void InputManager::handleKeyDown(unsigned char key, int x, int y) {
+void InputManager::handleKeyDown(unsigned char key, int x, int y)
+{
     currentKeyStates[key] = true;
 }
 
-void InputManager::handleKeyUp(unsigned char key, int x, int y) {
+void InputManager::handleKeyUp(unsigned char key, int x, int y)
+{
     currentKeyStates[key] = false;
 }
 
+// SPECIAL KEYS
+
 bool InputManager::isSpecialKeyDown(int key) const
 {
-    auto it = currentSpecialKeyStates.find(key);
-
-    return (it != currentKeyStates.end()) ? it->second : false;
+    return (key >= 0 && key < MAX_SPECIAL_KEYS) ? currentSpecialKeyStates[key] : false;
 }
+
 bool InputManager::isSpecialKeyPressed(int key) const
 {
-    bool isDownNow = isSpecialKeyDown(key);
-    auto it = previousSpecialKeyStates.find(key);
-    bool wasDownLastFrame = ( it != previousSpecialKeyStates.end()) ? it->second : false;
-
-    return isDownNow && !wasDownLastFrame;
+    if (key < 0 || key >= MAX_SPECIAL_KEYS) return false;
+    return currentSpecialKeyStates[key] && !previousSpecialKeyStates[key];
 }
+
 bool InputManager::isSpecialKeyReleased(int key) const
 {
-    bool isDownNow = isSpecialKeyDown(key);
-    auto it = previousSpecialKeyStates.find(key);
-    bool wasDownLastFrame = ( it != previousSpecialKeyStates.end()) ? it->second : false;
+    if (key < 0 || key >= MAX_SPECIAL_KEYS) return false;
+    return !currentSpecialKeyStates[key] && previousSpecialKeyStates[key];
+}
 
-    return !isDownNow && wasDownLastFrame;
+void InputManager::handleSpecialKeyDown(int key, int x, int y)
+{
+    if (key >= 0 && key < MAX_SPECIAL_KEYS) {
+        currentSpecialKeyStates[key] = true;
+    }
 }
-void InputManager::handleSpecialKeyDown(int key, int x, int y) {
-    currentSpecialKeyStates[key] = true;
-}
-void InputManager::handleSpecialKeyUp(int key, int x, int y) {
-    currentSpecialKeyStates[key] = false;
+
+void InputManager::handleSpecialKeyUp(int key, int x, int y)
+{
+    if (key >= 0 && key < MAX_SPECIAL_KEYS) {
+        currentSpecialKeyStates[key] = false;
+    }
 }

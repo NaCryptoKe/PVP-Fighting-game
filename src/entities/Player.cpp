@@ -245,7 +245,6 @@ bool Player::loadAttack(
 
 void Player::renderDamageBox(const std::string &name)
 {
-    printf("Is attack active: %s\n", isActiveAttack() ? "YES" : "NO");
     if (isActiveAttack())
     {
         auto it = attacks.find(name);
