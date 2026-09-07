@@ -1,20 +1,20 @@
 #ifndef HUD_H
 #define HUD_H
 
-#include "entities/Player.h"
+#include "entities/Character.h"
 #include "render/Font.h"
 
 class HUD
 {
 private:
-    class Player& player;
+    class Character& player;
 
     float width;
     float viewportWidth;
     float viewportHeight;
 
 public:
-    HUD(class Player &PLAYER, float WIDTH);
+    HUD(class Character &PLAYER, float WIDTH);
 
     void setViewportSize(float width, float height);
     void drawHealthBar(float x, float y, float height, bool flipped);

@@ -2,11 +2,9 @@
 #define FONT_H
 
 #include "GL/glut.h"
-#include "stb/stb_truetype.h"
 
 struct Font {
     GLuint textureID;
-    stbtt_bakedchar cdata[96]; // Character data for ASCII 32..126
     float fontSize;
 
     bool load(const char* filepath, float size);

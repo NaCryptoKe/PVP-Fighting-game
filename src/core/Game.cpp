@@ -15,7 +15,7 @@ void Game::init()
     roundTimer.reset(90);
 
     // Load font for UI
-    gameFont.load("assets/fonts/Arial.ttf", 32.0f);
+    gameFont.load("assets/fonts/main.ttf", 32.0f);
     hud1.setViewportSize(1920.0f, 1080.0f);
     hud2.setViewportSize(1920.0f, 1080.0f);
 
@@ -67,17 +67,17 @@ void Game::render()
     if (matchPhase == MatchPhase::ROUND_OVER)
     {
         if (player1.getHealth() <= 0.0f)
-            hud2.drawWinnerMessage(gameFont, "Player 2");
+            hud2.drawWinnerMessage(gameFont, "Character 2");
         else
-            hud1.drawWinnerMessage(gameFont, "Player 1");
+            hud1.drawWinnerMessage(gameFont, "Character 1");
     }
     
     if (matchPhase == MatchPhase::MATCH_OVER)
     {
         if (roundWinsP1 >= 2)
-            hud1.drawWinnerMessage(gameFont, "Player 1 is Champion!");
+            hud1.drawWinnerMessage(gameFont, "Character 1 is Champion!");
         else
-            hud2.drawWinnerMessage(gameFont, "Player 2 is Champion!");
+            hud2.drawWinnerMessage(gameFont, "Character 2 is Champion!");
     }
     
     hud1.drawTimer(gameFont, roundTimer.getSecondsRemaining(), 50.0f);
@@ -144,7 +144,7 @@ void Game::update()
     if (player1.getState() != PlayerState::ATTACK) player1.autoFace(player2.getPositionX());
     if (player2.getState() != PlayerState::ATTACK) player2.autoFace(player1.getPositionX());
 
-    // ---- Player 1 ----
+    // ---- Character 1 ----
     if (input.isKeyPressed('u') && player1.canMove()) player1.performAttack("LIGHT_PUNCH");
     if (input.isKeyPressed('j') && player1.canMove()) player1.performAttack("HARD_PUNCH");
 
@@ -163,7 +163,7 @@ void Game::update()
         if (input.isKeyDown('w') || input.isKeyDown('W')) player1.jump();
     }
 
-    // ---- Player 2 ----
+    // ---- Character 2 ----
     if (input.isKeyPressed('1') && player2.canMove()) player2.performAttack("LIGHT_PUNCH");
     if (input.isKeyPressed('2') && player2.canMove()) player2.performAttack("HARD_PUNCH");
 

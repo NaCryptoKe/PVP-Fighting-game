@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "entities/Player.h"
+#include "entities/Character.h"
 
 struct Camera
 {
@@ -15,8 +15,8 @@ struct Camera
     static constexpr float STAGE_LEFT = -2000.0f;
     static constexpr float STAGE_RIGHT = 2000.0f;
 
-    void apply(Player &player1, Player &player2, float screenWidth = 1920.0f, float screenHeight = 1080.0f, float focusY = 150.0f);
-    void updateBounds(Player &player1, Player &player2, float screenWidth = 1920.0f);
+    void apply(Character &player1, Character &player2, float screenWidth = 1920.0f, float screenHeight = 1080.0f, float focusY = 150.0f);
+    void updateBounds(Character &player1, Character &player2, float screenWidth = 1920.0f);
 };
 
 #endif // CAMERA_H

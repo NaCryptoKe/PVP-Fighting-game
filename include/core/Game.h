@@ -3,7 +3,7 @@
 
 #include "core/Timer.h"
 #include "core/InputManager.h"
-#include "entities/Player.h"
+#include "entities/Character.h"
 #include "utils/RoundTimer.h"
 #include "entities/Camera.h"
 #include "render/HUD.h"
@@ -36,8 +36,8 @@ private:
   Timer timer;
   InputManager input;
 
-  Player player1{480.0f, 120.0f, 1000.0f};
-  Player player2{1440.0f, 120.0f, 1000.0f};
+  Character player1{480.0f, 120.0f, 1000.0f};
+  Character player2{1440.0f, 120.0f, 1000.0f};
 
   RoundTimer roundTimer;
   Camera camera;

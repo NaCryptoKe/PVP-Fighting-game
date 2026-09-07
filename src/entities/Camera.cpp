@@ -4,7 +4,7 @@
 #include <iostream>
 #include <algorithm>
 
-void Camera::apply(Player &player1, Player &player2, float screenWidth, float screenHeight, float focusY)
+void Camera::apply(Character &player1, Character &player2, float screenWidth, float screenHeight, float focusY)
 {
     // 1. Calculate horizontal separation and dynamic horizontal zoom ONLY
     float absoluteHorizontal = std::abs(player1.getPositionX() - player2.getPositionX());
@@ -51,7 +51,7 @@ void Camera::apply(Player &player1, Player &player2, float screenWidth, float sc
     glTranslatef(-xCameraTarget, -yCameraTarget, 0.0f);
 }
 
-void Camera::updateBounds(Player &player1, Player &player2, float screenWidth)
+void Camera::updateBounds(Character &player1, Character &player2, float screenWidth)
 {
     float xMidPoint = (player1.getPositionX() + player2.getPositionX()) * 0.5f;
     

@@ -1,5 +1,5 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef CHARACTER_H
+#define CHARACTER_H
 
 #include "entities/PlayerState.h"
 #include "utils/AABB.h"
@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <string>
 
-class Player
+class Character
 {
 private:
     float positionX;
@@ -40,7 +40,7 @@ private:
     Sprite sprite;
 
 public:
-    Player(float posX, float posY, float HP);
+    Character(float posX, float posY, float HP);
 
     void update(float deltaTime);
     void render();
@@ -104,4 +104,4 @@ public:
     void collision(float leftLimit, float rightLimit);
 };
 
-#endif // PLAYER_H
+#endif // CHARACTER_H

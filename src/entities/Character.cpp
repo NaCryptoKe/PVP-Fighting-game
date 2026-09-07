@@ -1,16 +1,16 @@
-#include "entities/Player.h"
+#include "entities/Character.h"
 
 #include "GL/glut.h"
 #include "render/Renderer.h"
 #include <iostream>
 #include <cmath>
 
-Player::Player(float posX, float posY, float HP)
+Character::Character(float posX, float posY, float HP)
     :   positionX(posX), positionY(posY), velocityX(0.0f), velocityY(0.0f),
         maxHealth(HP), currentHealth(HP),
         facingRight(true), currentState(PlayerState::IDLE) {}
 
-void Player::update(float deltaTime)
+void Character::update(float deltaTime)
 {
     float groundLevel = 120.0f;
     const float gravity = 7349.94f;
@@ -41,7 +41,7 @@ void Player::update(float deltaTime)
     moveHitbox();
 }
 
-void Player::render()
+void Character::render()
 {
     // If sprite has a valid texture, render it; otherwise use fallback colored quad
     if (sprite.getTexture().id != 0)
@@ -80,7 +80,7 @@ void Player::render()
     }
 }
 
-void Player::renderHitBox()
+void Character::renderHitBox()
 {
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
@@ -91,14 +91,14 @@ void Player::renderHitBox()
     glEnd();
 }
 
-void Player::takeDamage(float damage)
+void Character::takeDamage(float damage)
 {
     if (currentState == PlayerState::BLOCK) damage /= 4.0f;
     currentHealth -= damage;
     if (currentHealth <= 0.0f) currentHealth = 0.0f;
 }
 
-void Player::onHit(float damage, float knockback, bool pushRight, float hitstunTime)
+void Character::onHit(float damage, float knockback, bool pushRight, float hitstunTime)
 {
     bool wasBlocking = (currentState == PlayerState::BLOCK);
     takeDamage(damage);
@@ -118,7 +118,7 @@ void Player::onHit(float damage, float knockback, bool pushRight, float hitstunT
     }
 }
 
-void Player::updateHitstun(float deltaTime)
+void Character::updateHitstun(float deltaTime)
 {
     if (currentState != PlayerState::HITSTUN) return;
 
@@ -130,25 +130,25 @@ void Player::updateHitstun(float deltaTime)
     }
 }
 
-void Player::moveFront()
+void Character::moveFront()
 {
     facingRight ? velocityX = std::abs(walk) : velocityX = -std::abs(walk);
     if (isGrounded()) currentState = PlayerState::WALK;
 }
 
-void Player::moveBack()
+void Character::moveBack()
 {
     !facingRight ? velocityX = std::abs(walk) : velocityX = -std::abs(walk);
     if (isGrounded()) currentState = PlayerState::WALK;
 }
 
-void Player::stopX()
+void Character::stopX()
 {
     velocityX = 0.0f;
     currentState = PlayerState::IDLE;
 }
 
-void Player::jump()
+void Character::jump()
 {
     if (isGrounded())
     {
@@ -157,17 +157,17 @@ void Player::jump()
     }
 }
 
-void Player::autoFace(float opponentX)
+void Character::autoFace(float opponentX)
 {
     facingRight = (positionX <= opponentX);
 }
 
-void Player::moveHitbox()
+void Character::moveHitbox()
 {
     hitbox.playerBox = hitbox.toWorld(positionX, positionY, facingRight);
 }
 
-void Player::setBlocking(bool wantBlock)
+void Character::setBlocking(bool wantBlock)
 {
     if (wantBlock)
     {
@@ -179,7 +179,7 @@ void Player::setBlocking(bool wantBlock)
     }
 }
 
-void Player::setCrouching(bool wantCrouch)
+void Character::setCrouching(bool wantCrouch)
 {
     if(wantCrouch)
     {
@@ -191,23 +191,23 @@ void Player::setCrouching(bool wantCrouch)
     }
 }
 
-bool Player::isBlocking() const { return currentState == PlayerState::BLOCK; }
+bool Character::isBlocking() const { return currentState == PlayerState::BLOCK; }
 
-bool Player::canAct() const
+bool Character::canAct() const
 {
     return currentState != PlayerState::ATTACK &&
            currentState != PlayerState::HITSTUN &&
            currentState != PlayerState::DEATH;
 }
 
-bool Player::canMove() const
+bool Character::canMove() const
 {
     return canAct() && currentState != PlayerState::BLOCK;
 }
 
-bool Player::isDead() const { return currentState == PlayerState::DEATH; }
+bool Character::isDead() const { return currentState == PlayerState::DEATH; }
 
-void Player::resetForRound(float posX, float posY)
+void Character::resetForRound(float posX, float posY)
 {
     positionX = posX;
     positionY = posY;
@@ -223,13 +223,13 @@ void Player::resetForRound(float posX, float posY)
     moveHitbox();
 }
 
-void Player::setPositionX(float posX) { positionX = posX; }
-void Player::setPositionY(float posY) { positionY = posY; }
-void Player::setVelocityX(float velX) { velocityX = velX; }
-void Player::setVelocityY(float velY) { velocityY = velY; }
-void Player::setFacingRight(bool isFacingRight) { facingRight = isFacingRight; }
-void Player::setState(PlayerState state) { currentState = state; }
-void Player::setHitBox(float offsetX, float offsetY, float width, float height)
+void Character::setPositionX(float posX) { positionX = posX; }
+void Character::setPositionY(float posY) { positionY = posY; }
+void Character::setVelocityX(float velX) { velocityX = velX; }
+void Character::setVelocityY(float velY) { velocityY = velY; }
+void Character::setFacingRight(bool isFacingRight) { facingRight = isFacingRight; }
+void Character::setState(PlayerState state) { currentState = state; }
+void Character::setHitBox(float offsetX, float offsetY, float width, float height)
 {
     hitbox.offsetX = offsetX;
     hitbox.offsetY = offsetY;
@@ -238,18 +238,18 @@ void Player::setHitBox(float offsetX, float offsetY, float width, float height)
     hitbox.playerBox = hitbox.toWorld(offsetX, offsetY, facingRight);
 }
 
-float Player::getPositionX() const { return positionX; }
-float Player::getPositionY() const { return positionY; }
-float Player::getVelocityX() const { return velocityX; }
-float Player::getVelocityY() const { return velocityY; }
-float Player::getHealth() const { return currentHealth; }
-float Player::getMaxHealth() const { return maxHealth; }
-bool Player::isFacingRight() const { return facingRight; }
-bool Player::isGrounded() const { return positionY <= 120.0f; }
-PlayerState Player::getState() const { return currentState; }
-AABB Player::getHitBox() const { return hitbox.playerBox; }
+float Character::getPositionX() const { return positionX; }
+float Character::getPositionY() const { return positionY; }
+float Character::getVelocityX() const { return velocityX; }
+float Character::getVelocityY() const { return velocityY; }
+float Character::getHealth() const { return currentHealth; }
+float Character::getMaxHealth() const { return maxHealth; }
+bool Character::isFacingRight() const { return facingRight; }
+bool Character::isGrounded() const { return positionY <= 120.0f; }
+PlayerState Character::getState() const { return currentState; }
+AABB Character::getHitBox() const { return hitbox.playerBox; }
 
-bool Player::loadAttack(
+bool Character::loadAttack(
     AttackType type, int startupFrame, int activeFrame, int recoveryFrame,
     float damageAmount, float hboffsetX, float hboffsetY, float width, float height,
     const std::string &name, float knockBackForce, bool blockable)
@@ -274,7 +274,7 @@ bool Player::loadAttack(
     return true;
 }
 
-void Player::renderDamageBox(const std::string &name)
+void Character::renderDamageBox(const std::string &name)
 {
     if (!isActiveAttack()) return;
     auto it = attacks.find(name);
@@ -293,7 +293,7 @@ void Player::renderDamageBox(const std::string &name)
     glEnd();
 }
 
-void Player::performAttack(const std::string &name)
+void Character::performAttack(const std::string &name)
 {
     if (!canAct()) return;
     if (currentState == PlayerState::BLOCK) return;
@@ -310,9 +310,9 @@ void Player::performAttack(const std::string &name)
     velocityX = 0.0f;
 }
 
-std::string Player::getCurrentAttackName() const { return currentAttackName; }
+std::string Character::getCurrentAttackName() const { return currentAttackName; }
 
-void Player::updateAttack(float deltaTime)
+void Character::updateAttack(float deltaTime)
 {
     if (currentState != PlayerState::ATTACK || currentAttackName.empty()) return;
 
@@ -348,7 +348,7 @@ void Player::updateAttack(float deltaTime)
     }
 }
 
-bool Player::isActiveAttack() const
+bool Character::isActiveAttack() const
 {
     if (currentState != PlayerState::ATTACK || currentAttackName.empty()) return false;
 
@@ -362,7 +362,7 @@ bool Player::isActiveAttack() const
     return (frameCounter > startupEnd && frameCounter <= activeEnd);
 }
 
-bool Player::getActiveAttackHitbox(AABB &outBox) const
+bool Character::getActiveAttackHitbox(AABB &outBox) const
 {
     if (!isActiveAttack()) return false;
     auto it = attacks.find(currentAttackName);
@@ -372,22 +372,22 @@ bool Player::getActiveAttackHitbox(AABB &outBox) const
     return true;
 }
 
-float Player::getCurrentAttackDamage() const
+float Character::getCurrentAttackDamage() const
 {
     auto it = attacks.find(currentAttackName);
     return (it != attacks.end()) ? it->second.damageAmount : 0.0f;
 }
 
-float Player::getCurrentAttackKnockback() const
+float Character::getCurrentAttackKnockback() const
 {
     auto it = attacks.find(currentAttackName);
     return (it != attacks.end()) ? it->second.knockBackForce : 0.0f;
 }
 
-bool Player::getHasHit() const { return hasHit; }
-void Player::markHit() { hasHit = true; }
+bool Character::getHasHit() const { return hasHit; }
+void Character::markHit() { hasHit = true; }
 
-void Player::collision(float leftLimit, float rightLimit)
+void Character::collision(float leftLimit, float rightLimit)
 {
     float playerRadius = 150.0f;
     float padding = 50.0f;

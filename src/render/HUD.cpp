@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string>
 
-HUD::HUD(Player& PLAYER, float WIDTH)
+HUD::HUD(Character& PLAYER, float WIDTH)
     : player(PLAYER),
       width(WIDTH) {}
 
