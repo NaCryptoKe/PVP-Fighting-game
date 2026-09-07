@@ -3,6 +3,8 @@
 
 #include "entities/PlayerState.h"
 #include "utils/AABB.h"
+#include "graphics/Animation.h"
+#include "graphics/Sprite.h"
 
 #include <unordered_map>
 #include <string>
@@ -32,6 +34,10 @@ private:
     bool hasHit = false;
 
     float hitstunTimer = 0.0f;
+
+    // Animation and sprite systems
+    std::unordered_map<std::string, Animation> animations;
+    Sprite sprite;
 
 public:
     Player(float posX, float posY, float HP);

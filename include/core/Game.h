@@ -6,6 +6,8 @@
 #include "entities/Player.h"
 #include "utils/RoundTimer.h"
 #include "entities/Camera.h"
+#include "render/HUD.h"
+#include "render/Font.h"
 
 enum class MatchPhase { FIGHTING, ROUND_OVER, MATCH_OVER };
 
@@ -39,6 +41,10 @@ private:
 
   RoundTimer roundTimer;
   Camera camera;
+
+  HUD hud1{player1, 200.0f};
+  HUD hud2{player2, 200.0f};
+  Font gameFont;
 
   int roundWinsP1 = 0;
   int roundWinsP2 = 0;
