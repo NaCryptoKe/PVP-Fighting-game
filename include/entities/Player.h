@@ -56,6 +56,7 @@ public:
     bool canAct() const;
     bool canMove() const;
     bool isDead() const;
+    void setCrouching(bool wantCrouch);
     void resetForRound(float posX, float posY);
 
     void setPositionX(float posX);

@@ -57,6 +57,7 @@ void Player::render()
             case PlayerState::BLOCK:   glColor3f(0.5f, 0.5f, 0.5f); break;
             case PlayerState::HITSTUN: glColor3f(1.0f, 0.0f, 1.0f); break;
             case PlayerState::DEATH:   glColor3f(0.1f, 0.1f, 0.1f); break;
+            case PlayerState::CROUCH:   glColor3f(0.55f, 0.27f, 0.07f); break;
         }
         glVertex2f(-length / 2.0f, 0.0f);
         glVertex2f( length / 2.0f, 0.0f);
@@ -161,6 +162,18 @@ void Player::setBlocking(bool wantBlock)
         if (canAct()) currentState = PlayerState::BLOCK;
     }
     else if (currentState == PlayerState::BLOCK)
+    {
+        currentState = PlayerState::IDLE;
+    }
+}
+
+void Player::setCrouching(bool wantCrouch)
+{
+    if(wantCrouch)
+    {
+        if (canAct() && isGrounded()) currentState = PlayerState::CROUCH;
+    }
+    else if (currentState == PlayerState::CROUCH)
     {
         currentState = PlayerState::IDLE;
     }

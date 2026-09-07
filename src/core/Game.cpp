@@ -76,6 +76,8 @@ void Game::reshape(int width, int height)
 
 void Game::update()
 {
+  //printf("PLAYER 1: %.2f\nPLAYER 2: %.2f\n", player1.getHealth(), player2.getHealth());
+
     timer.update();
     float deltaTime = timer.getDeltaTime();
 
@@ -102,6 +104,7 @@ void Game::update()
     if (input.isKeyPressed('j') && player1.canMove()) player1.performAttack("HARD_PUNCH");
 
     player1.setBlocking(input.isKeyDown('k'));
+    player1.setCrouching(input.isKeyDown('s'));
 
     if (player1.canMove())
     {
@@ -120,6 +123,7 @@ void Game::update()
     if (input.isKeyPressed('2') && player2.canMove()) player2.performAttack("HARD_PUNCH");
 
     player2.setBlocking(input.isKeyDown('3'));
+    player2.setCrouching(input.isSpecialKeyDown(GLUT_KEY_DOWN));
 
     if (player2.canMove())
     {
