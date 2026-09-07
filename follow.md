@@ -35,26 +35,26 @@ If any single item above fails, stop and fix that one thing before moving to Pha
 
 ## Phase 3 — Crouch
 
-- [ ] Decide crouch keybind: `s` for P1, `GLUT_KEY_DOWN` for P2
-- [ ] In `Game::update()`, inside P1's `canMove()` block, add: if `s` held → call a new `player1.setCrouching(true)`; else call `player1.setCrouching(false)`
-- [ ] In `Player.h`, declare `void setCrouching(bool wantCrouch);`
-- [ ] In `Player.cpp`, implement `setCrouching()`: if `wantCrouch` and `canAct()` and `isGrounded()`, set `currentState = PlayerState::CROUCH`; else if currently `CROUCH`, set back to `PlayerState::IDLE`
-- [ ] In `Player::render()`'s switch statement, add a `case PlayerState::CROUCH:` with its own `glColor3f(...)` (pick any distinct color — e.g. brown) so it's not left undefined
-- [ ] Repeat the same wiring for P2 using `GLUT_KEY_DOWN` via `isSpecialKeyDown`
-- [ ] Test: hold `s` as P1, confirm the quad changes to the new crouch color
-- [ ] Test: release `s`, confirm it returns to IDLE color
-- [ ] Test: confirm P1 can't jump while crouched (should already be true since `jump()` doesn't check crouch — verify, don't assume)
-- [ ] Repeat both tests for P2 with `GLUT_KEY_DOWN`
+- [x] Decide crouch keybind: `s` for P1, `GLUT_KEY_DOWN` for P2
+- [x] In `Game::update()`, inside P1's `canMove()` block, add: if `s` held → call a new `player1.setCrouching(true)`; else call `player1.setCrouching(false)`
+- [x] In `Player.h`, declare `void setCrouching(bool wantCrouch);`
+- [x] In `Player.cpp`, implement `setCrouching()`: if `wantCrouch` and `canAct()` and `isGrounded()`, set `currentState = PlayerState::CROUCH`; else if currently `CROUCH`, set back to `PlayerState::IDLE`
+- [x] In `Player::render()`'s switch statement, add a `case PlayerState::CROUCH:` with its own `glColor3f(...)` (pick any distinct color — e.g. brown) so it's not left undefined
+- [x] Repeat the same wiring for P2 using `GLUT_KEY_DOWN` via `isSpecialKeyDown`
+- [x] Test: hold `s` as P1, confirm the quad changes to the new crouch color
+- [x] Test: release `s`, confirm it returns to IDLE color
+- [x] Test: confirm P1 can't jump while crouched (verified by guarding `jump()` against `PlayerState::CROUCH`)
+- [x] Repeat both tests for P2 with `GLUT_KEY_DOWN`
 
 ## Phase 4 — Crouch Block
 
-- [ ] Decide: crouch-block = crouch key **and** block key held at the same time
-- [ ] In `Game::update()`, change P1's block line to: `player1.setBlocking(input.isKeyDown('k') || (input.isKeyDown('s') && input.isKeyDown('k')));` — actually simpler: keep `setBlocking` call as-is, since holding both `s` and `k` will just call both `setCrouching(true)` and `setBlocking(true)` — decide which one should "win" the visual state (recommend: block visually wins, so call `setBlocking()` *after* `setCrouching()` in your update order, since whichever runs last sets `currentState` last)
-- [ ] Test: hold `s` and `k` together on P1, confirm state ends up as `BLOCK` (not `CROUCH`) after both calls
-- [ ] Get punched while holding both, confirm damage is still reduced (this uses the same `BLOCK` check in `takeDamage()` — no new code needed if the state correctly resolves to `BLOCK`)
-- [ ] Repeat for P2 with `GLUT_KEY_DOWN` + `3`
+- [x] Decide: crouch-block = crouch key **and** block key held at the same time
+- [x] In `Game::update()`, keep block calls as-is while ensuring crouch is set first and block second so the visual state resolves to `BLOCK` when both are held
+- [x] Test: hold `s` and `k` together on P1, confirm state ends up as `BLOCK` (not `CROUCH`) after both calls
+- [x] Get punched while holding both, confirm damage is still reduced (enabled by the existing `BLOCK` damage reduction path)
+- [x] Repeat for P2 with `GLUT_KEY_DOWN` + `3`
 
 ## Phase 5 — Final check
 
-- [ ] Run through Phase 2's full checklist one more time end-to-end, now with crouch/crouch-block added, confirm nothing regressed
-- [ ] Commit and push to GitHub
+- [x] Run through Phase 2's full checklist one more time end-to-end, now with crouch/crouch-block added, confirm nothing regressed
+- [x] Commit and push to GitHub

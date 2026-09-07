@@ -103,8 +103,8 @@ void Game::update()
     if (input.isKeyPressed('u') && player1.canMove()) player1.performAttack("LIGHT_PUNCH");
     if (input.isKeyPressed('j') && player1.canMove()) player1.performAttack("HARD_PUNCH");
 
-    player1.setBlocking(input.isKeyDown('k'));
     player1.setCrouching(input.isKeyDown('s'));
+    player1.setBlocking(input.isKeyDown('k'));
 
     if (player1.canMove())
     {
@@ -122,8 +122,8 @@ void Game::update()
     if (input.isKeyPressed('1') && player2.canMove()) player2.performAttack("LIGHT_PUNCH");
     if (input.isKeyPressed('2') && player2.canMove()) player2.performAttack("HARD_PUNCH");
 
-    player2.setBlocking(input.isKeyDown('3'));
     player2.setCrouching(input.isSpecialKeyDown(GLUT_KEY_DOWN));
+    player2.setBlocking(input.isKeyDown('3'));
 
     if (player2.canMove())
     {

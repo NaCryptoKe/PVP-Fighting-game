@@ -138,7 +138,7 @@ void Player::stopX()
 
 void Player::jump()
 {
-    if (isGrounded())
+    if (isGrounded() && currentState != PlayerState::CROUCH)
     {
         velocityY = jumpForce;
         currentState = PlayerState::JUMP;
@@ -190,7 +190,7 @@ bool Player::canAct() const
 
 bool Player::canMove() const
 {
-    return canAct() && currentState != PlayerState::BLOCK;
+    return canAct() && currentState != PlayerState::BLOCK && currentState != PlayerState::CROUCH;
 }
 
 bool Player::isDead() const { return currentState == PlayerState::DEATH; }
