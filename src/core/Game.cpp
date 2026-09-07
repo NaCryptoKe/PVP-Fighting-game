@@ -4,13 +4,22 @@
 
 #include "core/Game.h"
 #include "render/Renderer.h"
+#include "entities/CharacterRoster.h"
 
 Game::Game() {}
 
 void Game::init()
 {
     Renderer::init();
-    
+
+    // Load character data from the roster — configure once, use everywhere
+    for (const std::string& name : CharacterRoster::getAvailableCharacters())
+        std::cout << "Roster: " << name << " ready\n";
+
+    CharacterData data = CharacterRoster::getCharacter("Stickman");
+    character1.applyData(data);
+    character2.applyData(data);
+
     timer.start();
     roundTimer.reset(90);
 
@@ -18,31 +27,22 @@ void Game::init()
     gameFont.load("assets/fonts/main.ttf", 32.0f);
     hud1.setViewportSize(1920.0f, 1080.0f);
     hud2.setViewportSize(1920.0f, 1080.0f);
-
-    player1.setHitBox(-100.0f, 0.0f, 200.0f, 300.0f);
-    player2.setHitBox(-50.0f, 0.0f, 100.0f, 300.0f);
-
-    player1.loadAttack(AttackType::LIGHT_PUNCH, 4, 3, 8, 50.0f, 100.0f, 150.0f, 120.0f, 80.0f, "LIGHT_PUNCH", 150.0f);
-    player1.loadAttack(AttackType::HARD_PUNCH, 8, 4, 14, 120.0f, 120.0f, 150.0f, 160.0f, 100.0f, "HARD_PUNCH", 350.0f);
-
-    player2.loadAttack(AttackType::LIGHT_PUNCH, 4, 3, 8, 50.0f, 100.0f, 150.0f, 120.0f, 80.0f, "LIGHT_PUNCH", 150.0f);
-    player2.loadAttack(AttackType::HARD_PUNCH, 8, 4, 14, 120.0f, 120.0f, 150.0f, 160.0f, 100.0f, "HARD_PUNCH", 350.0f);
 }
 
 void Game::render()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    Renderer::clear(0.0f, 0.0f, 0.0f, 1.0f);
     glLoadIdentity();
 
-    camera.apply(player1, player2);
+    camera.apply(character1, character2);
 
-    player1.render();
-    player1.renderHitBox();
-    if (player1.isActiveAttack()) player1.renderDamageBox(player1.getCurrentAttackName());
+    character1.render();
+    character1.renderHitBox();
+    if (character1.isActiveAttack()) character1.renderDamageBox(character1.getCurrentAttackName());
 
-    player2.render();
-    player2.renderHitBox();
-    if (player2.isActiveAttack()) player2.renderDamageBox(player2.getCurrentAttackName());
+    character2.render();
+    character2.renderHitBox();
+    if (character2.isActiveAttack()) character2.renderDamageBox(character2.getCurrentAttackName());
 
     glLineWidth(3.0f);
     glBegin(GL_LINES);
@@ -63,24 +63,28 @@ void Game::render()
     // Render HUD elements
     hud1.drawHealthBar(50.0f, 1000.0f, 30.0f, false);
     hud2.drawHealthBar(1670.0f, 1000.0f, 30.0f, true);
+
+    // Round countdown timer is always visible during a fight
+    if (matchPhase == MatchPhase::FIGHTING)
+        hud1.drawTimer(gameFont, roundTimer.getSecondsRemaining(), 50.0f);
     
     if (matchPhase == MatchPhase::ROUND_OVER)
     {
-        if (player1.getHealth() <= 0.0f)
-            hud2.drawWinnerMessage(gameFont, "Player 2");
+        if (lastRoundWinner == 2)
+            hud2.drawWinnerMessage(gameFont, "Player 2 Wins the Round!", "Round Over");
+        else if (lastRoundWinner == 1)
+            hud1.drawWinnerMessage(gameFont, "Player 1 Wins the Round!", "Round Over");
         else
-            hud1.drawWinnerMessage(gameFont, "Player 1");
+            hud1.drawWinnerMessage(gameFont, "Round Over", "Tie - No Winner!");
     }
     
     if (matchPhase == MatchPhase::MATCH_OVER)
     {
         if (roundWinsP1 >= 2)
-            hud1.drawWinnerMessage(gameFont, "Player 1 is Champion!");
+            hud1.drawWinnerMessage(gameFont, "Player 1 is Champion!", "Match Over - R rematch, Q quit");
         else
-            hud2.drawWinnerMessage(gameFont, "Player 2 is Champion!");
+            hud2.drawWinnerMessage(gameFont, "Player 2 is Champion!", "Match Over - R rematch, Q quit");
     }
-    
-    hud1.drawTimer(gameFont, roundTimer.getSecondsRemaining(), 50.0f);
 
     // Restore projection matrix
     glPopMatrix();
@@ -121,8 +125,6 @@ void Game::reshape(int width, int height)
 
 void Game::update()
 {
-  //printf("PLAYER 1: %.2f\nPLAYER 2: %.2f\n", player1.getHealth(), player2.getHealth());
-
     timer.update();
     float deltaTime = timer.getDeltaTime();
 
@@ -141,94 +143,113 @@ void Game::update()
         return;
     }
 
-    if (player1.getState() != PlayerState::ATTACK) player1.autoFace(player2.getPositionX());
-    if (player2.getState() != PlayerState::ATTACK) player2.autoFace(player1.getPositionX());
+    if (character1.getState() != CharacterState::ATTACK) character1.autoFace(character2.getPositionX());
+    if (character2.getState() != CharacterState::ATTACK) character2.autoFace(character1.getPositionX());
 
     // ---- Player 1 ----
-    if (input.isKeyPressed('u') && player1.canMove()) player1.performAttack("LIGHT_PUNCH");
-    if (input.isKeyPressed('j') && player1.canMove()) player1.performAttack("HARD_PUNCH");
+    if (input.isKeyPressed('u') && character1.canMove()) character1.performAttack("LIGHT_PUNCH");
+    if (input.isKeyPressed('j') && character1.canMove()) character1.performAttack("HARD_PUNCH");
 
-    player1.setBlocking(input.isKeyDown('k'));
-    player1.setCrouching(input.isKeyDown('s'));
+    character1.setBlocking(input.isKeyDown('k'));
+    character1.setCrouching(input.isKeyDown('s'));
 
-    if (player1.canMove())
+    if (character1.canMove())
     {
         bool moveLeftHeld  = input.isKeyDown('a') || input.isKeyDown('A');
         bool moveRightHeld = input.isKeyDown('d') || input.isKeyDown('D');
 
-        if (moveLeftHeld)       { player1.isFacingRight() ? player1.moveBack()  : player1.moveFront(); }
-        else if (moveRightHeld) { player1.isFacingRight() ? player1.moveFront() : player1.moveBack();  }
-        else                    { player1.stopX(); }
+        if (moveLeftHeld)       { character1.isFacingRight() ? character1.moveBack()  : character1.moveFront(); }
+        else if (moveRightHeld) { character1.isFacingRight() ? character1.moveFront() : character1.moveBack();  }
+        else                    { character1.stopX(); }
 
-        if (input.isKeyDown('w') || input.isKeyDown('W')) player1.jump();
+        if (input.isKeyDown('w') || input.isKeyDown('W')) character1.jump();
     }
 
     // ---- Player 2 ----
-    if (input.isKeyPressed('1') && player2.canMove()) player2.performAttack("LIGHT_PUNCH");
-    if (input.isKeyPressed('2') && player2.canMove()) player2.performAttack("HARD_PUNCH");
+    if (input.isKeyPressed('1') && character2.canMove()) character2.performAttack("LIGHT_PUNCH");
+    if (input.isKeyPressed('2') && character2.canMove()) character2.performAttack("HARD_PUNCH");
 
-    player2.setBlocking(input.isKeyDown('3'));
-    player2.setCrouching(input.isSpecialKeyDown(GLUT_KEY_DOWN));
+    character2.setBlocking(input.isKeyDown('3'));
+    character2.setCrouching(input.isSpecialKeyDown(GLUT_KEY_DOWN));
 
-    if (player2.canMove())
+    if (character2.canMove())
     {
         bool moveLeftHeld  = input.isSpecialKeyDown(GLUT_KEY_LEFT);
         bool moveRightHeld = input.isSpecialKeyDown(GLUT_KEY_RIGHT);
 
-        if (moveLeftHeld)       { player2.isFacingRight() ? player2.moveBack()  : player2.moveFront(); }
-        else if (moveRightHeld) { player2.isFacingRight() ? player2.moveFront() : player2.moveBack();  }
-        else                    { player2.stopX(); }
+        if (moveLeftHeld)       { character2.isFacingRight() ? character2.moveBack()  : character2.moveFront(); }
+        else if (moveRightHeld) { character2.isFacingRight() ? character2.moveFront() : character2.moveBack();  }
+        else                    { character2.stopX(); }
 
-        if (input.isSpecialKeyDown(GLUT_KEY_UP)) player2.jump();
+        if (input.isSpecialKeyDown(GLUT_KEY_UP)) character2.jump();
     }
 
-    camera.updateBounds(player1, player2);
+    camera.updateBounds(character1, character2);
 
-    player1.updateAttack(deltaTime);
-    player2.updateAttack(deltaTime);
+    character1.updateAttack(deltaTime);
+    character2.updateAttack(deltaTime);
 
-    player1.updateHitstun(deltaTime);
-    player2.updateHitstun(deltaTime);
+    character1.updateHitstun(deltaTime);
+    character2.updateHitstun(deltaTime);
 
-    player1.update(deltaTime);
-    player2.update(deltaTime);
+    character1.update(deltaTime);
+    character2.update(deltaTime);
 
-    player1.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
-    player2.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
+    character1.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
+    character2.collision(Camera::STAGE_LEFT, Camera::STAGE_RIGHT);
 
-    resolvePlayerCollision();
+    resolveCharacterCollision();
     resolveCombat();
 
-    if (player1.isDead() || player2.isDead())
+    // Round timer ran out → higher health wins the round
+    if (roundTimer.isExpired())
     {
-        if (player1.isDead()) roundWinsP2++;
-        if (player2.isDead()) roundWinsP1++;
+        if (character1.getHealth() > character2.getHealth())      { lastRoundWinner = 1; roundWinsP1++; }
+        else if (character2.getHealth() > character1.getHealth()) { lastRoundWinner = 2; roundWinsP2++; }
+        else                                                       { lastRoundWinner = 0; }
 
-        std::cout << "Round over! Score - P1: " << roundWinsP1 << " P2: " << roundWinsP2 << "\n";
+        endRound();
+        input.updateKeyState();
+        roundTimer.update(deltaTime);
+        return;
+    }
 
-        if (roundWinsP1 >= 2 || roundWinsP2 >= 2)
-        {
-            matchPhase = MatchPhase::MATCH_OVER;
-            std::cout << (roundWinsP1 >= 2 ? "PLAYER 1 WINS THE MATCH!" : "PLAYER 2 WINS THE MATCH!")
-                      << " (R = rematch, Q = quit)\n";
-        }
-        else
-        {
-            matchPhase = MatchPhase::ROUND_OVER;
-            roundEndTimer = 2.0f;
-        }
+    if (character1.isDead() || character2.isDead())
+    {
+        if (character1.isDead()) { lastRoundWinner = 2; roundWinsP2++; }
+        if (character2.isDead()) { lastRoundWinner = 1; roundWinsP1++; }
+
+        endRound();
     }
 
     input.updateKeyState();
     roundTimer.update(deltaTime);
 }
 
+void Game::endRound()
+{
+    std::cout << "Round over! Score - P1: " << roundWinsP1 << " P2: " << roundWinsP2 << "\n";
+
+    if (roundWinsP1 >= 2 || roundWinsP2 >= 2)
+    {
+        matchPhase = MatchPhase::MATCH_OVER;
+        std::cout << (roundWinsP1 >= 2 ? "PLAYER 1 WINS THE MATCH!" : "PLAYER 2 WINS THE MATCH!")
+                  << " (R = rematch, Q = quit)\n";
+    }
+    else
+    {
+        matchPhase = MatchPhase::ROUND_OVER;
+        roundEndTimer = 2.0f;
+    }
+}
+
 void Game::resetRound()
 {
-    player1.resetForRound(480.0f, 120.0f);
-    player2.resetForRound(1440.0f, 120.0f);
+    character1.resetForRound(480.0f, 120.0f);
+    character2.resetForRound(1440.0f, 120.0f);
     matchPhase = MatchPhase::FIGHTING;
-    roundTimer.reset(90);
+    roundTimer.reset(90);   // every round starts with 90 seconds
+    lastRoundWinner = 0;
 }
 
 void Game::handleRematchExitInput()
@@ -250,25 +271,25 @@ void Game::keyboardUpCallback(unsigned char key, [[maybe_unused]]int x, [[maybe_
 void Game::specialKeyDownCallback(int key, [[maybe_unused]]int x, [[maybe_unused]]int y) { input.handleSpecialKeyDown(key, x, y); }
 void Game::specialKeyUpCallback(int key, [[maybe_unused]]int x, [[maybe_unused]]int y) { input.handleSpecialKeyUp(key, x, y); }
 
-void Game::resolvePlayerCollision()
+void Game::resolveCharacterCollision()
 {
-    AABB player1HitBox = player1.getHitBox();
-    AABB player2HitBox = player2.getHitBox();
+    AABB char1HitBox = character1.getHitBox();
+    AABB char2HitBox = character2.getHitBox();
 
-    if (BOX::intersects(player1HitBox, player2HitBox))
+    if (BOX::intersects(char1HitBox, char2HitBox))
     {
         float overlapX = 0.0f;
-        if (player1.getPositionX() < player2.getPositionX())
+        if (character1.getPositionX() < character2.getPositionX())
         {
-            overlapX = player1HitBox.right - player2HitBox.left;
-            player1.setPositionX(player1.getPositionX() - overlapX * 0.5f);
-            player2.setPositionX(player2.getPositionX() + overlapX * 0.5f);
+            overlapX = char1HitBox.right - char2HitBox.left;
+            character1.setPositionX(character1.getPositionX() - overlapX * 0.5f);
+            character2.setPositionX(character2.getPositionX() + overlapX * 0.5f);
         }
         else
         {
-            overlapX = player2HitBox.right - player1HitBox.left;
-            player1.setPositionX(player1.getPositionX() + overlapX * 0.5f);
-            player2.setPositionX(player2.getPositionX() - overlapX * 0.5f);
+            overlapX = char2HitBox.right - char1HitBox.left;
+            character1.setPositionX(character1.getPositionX() + overlapX * 0.5f);
+            character2.setPositionX(character2.getPositionX() - overlapX * 0.5f);
         }
     }
 }
@@ -277,21 +298,21 @@ void Game::resolveCombat()
 {
     AABB attackBox;
 
-    if (player1.getActiveAttackHitbox(attackBox) && !player1.getHasHit())
+    if (character1.getActiveAttackHitbox(attackBox) && !character1.getHasHit())
     {
-        if (BOX::intersects(attackBox, player2.getHitBox()))
+        if (BOX::intersects(attackBox, character2.getHitBox()))
         {
-            player2.onHit(player1.getCurrentAttackDamage(), player1.getCurrentAttackKnockback(), player1.isFacingRight());
-            player1.markHit();
+            character2.onHit(character1.getCurrentAttackDamage(), character1.getCurrentAttackKnockback(), character1.isFacingRight());
+            character1.markHit();
         }
     }
 
-    if (player2.getActiveAttackHitbox(attackBox) && !player2.getHasHit())
+    if (character2.getActiveAttackHitbox(attackBox) && !character2.getHasHit())
     {
-        if (BOX::intersects(attackBox, player1.getHitBox()))
+        if (BOX::intersects(attackBox, character1.getHitBox()))
         {
-            player1.onHit(player2.getCurrentAttackDamage(), player2.getCurrentAttackKnockback(), player2.isFacingRight());
-            player2.markHit();
+            character1.onHit(character2.getCurrentAttackDamage(), character2.getCurrentAttackKnockback(), character2.isFacingRight());
+            character2.markHit();
         }
     }
 }

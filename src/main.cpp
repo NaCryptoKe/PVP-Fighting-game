@@ -45,8 +45,8 @@ void specialKeyUpCallback(int key, int x, int y)
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(600, 800);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_ALPHA);
+    glutInitWindowSize(1280, 720);   // 16:9 — maps 1:1 onto the 1920x1080 HUD space
     glutCreateWindow("Stickman Kombat");
 
     game.init();

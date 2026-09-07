@@ -16,16 +16,16 @@ struct BOX
     float width;
     float height;
 
-    AABB playerBox;
+    AABB box;
 
     // Static function to test if two AABBs intersect
-    static bool intersects(const AABB& player1, const AABB& player2) 
+    static bool intersects(const AABB& a, const AABB& b) 
     {
         return (
-                player1.left < player2.right &&
-                player1.right > player2.left &&
-                player1.bottom < player2.top &&
-                player1.top > player2.bottom
+                a.left < b.right &&
+                a.right > b.left &&
+                a.bottom < b.top &&
+                a.top > b.bottom
             );
     }
 
@@ -33,12 +33,12 @@ struct BOX
     {
         float worldOffsetX = facingRight ? offsetX : -offsetX - width;
 
-        AABB box;
-        box.left    = footX + worldOffsetX;
-        box.right   = box.left + width;
-        box.bottom  = footY + offsetY;
-        box.top     = box.bottom + height;
-        return box;
+        AABB result;
+        result.left    = footX + worldOffsetX;
+        result.right   = result.left + width;
+        result.bottom  = footY + offsetY;
+        result.top     = result.bottom + height;
+        return result;
     }
 };
 

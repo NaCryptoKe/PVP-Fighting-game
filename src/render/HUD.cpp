@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <string>
 
-HUD::HUD(Player& PLAYER, float WIDTH)
-    : player(PLAYER),
+HUD::HUD(Character& CHARACTER, float WIDTH)
+    : character(CHARACTER),
       width(WIDTH) {}
 
 void HUD::setViewportSize(float width, float height)
@@ -32,14 +32,8 @@ void HUD::drawHealthBar(
     // Current health
     // --------------------------------------------------------
 
-    int health = player.getHealth();
-    int maxHealth = player.getMaxHealth();
-
-    // printf(
-    //     "HUD: Health -> %d, MaxHealth -> %d\n",
-    //     health,
-    //     maxHealth
-    // );
+    int health = character.getHealth();
+    int maxHealth = character.getMaxHealth();
 
     float healthPercent = static_cast<float>(health) /
         static_cast<float>(maxHealth);
@@ -61,62 +55,35 @@ void HUD::drawHealthBar(
     }
 }
 
-void HUD::drawWinnerMessage(
-    Font font,
-    const char* text
-)
+void HUD::drawCentered(Font font, const char* text, float y)
 {
     float textWidth = font.getTextWidth(text);
+    float textX = (viewportWidth - textWidth) / 2.0f;
+
+    font.renderText(text, textX, y);
+}
+
+void HUD::drawWinnerMessage(
+    Font font,
+    const char* text,
+    const char* subtitle
+)
+{
     float textHeight = font.getTextHeight();
 
-    // Center player name horizontally.
-    float textX =
-        (viewportWidth - textWidth) / 2.0f;
+    // Winner title sits in the vertical center of the screen
+    float titleY = (viewportHeight - textHeight) / 2.0f;
 
-    float textY =
-        (viewportHeight - textHeight) / 2.0f;
+    // Subtitle (e.g. "Round Over", "Match Over") sits just below
+    float subtitleY = titleY - textHeight * 1.5f;
 
-
-    // --------------------------------------------------------
-    // "Wins"
-    // --------------------------------------------------------
-
-    const char* wins = "Wins";
-
-    float winsWidth =
-        font.getTextWidth(wins);
-
-    float winsX =
-        (viewportWidth - winsWidth) / 2.0f;
-
-    float winsY =
-        textY - textHeight * 1.5f;
-
-
-    // --------------------------------------------------------
-    // Render
-    // --------------------------------------------------------
-
-    font.renderText(
-        text,
-        textX,
-        textY
-    );
-
-    font.renderText(
-        wins,
-        winsX,
-        winsY
-    );
+    drawCentered(font, text, titleY);
+    drawCentered(font, subtitle, subtitleY);
 }
 
 void HUD::drawTimer(Font font, int timer, float y)
 {
     std::string timerText = std::to_string(timer);
 
-    float timerWidth = font.getTextWidth(timerText.c_str());
-    
-    float timerX = (viewportWidth - timerWidth) / 2.0f;
-
-    font.renderText(timerText.c_str(), timerX, viewportHeight - y);
+    drawCentered(font, timerText.c_str(), viewportHeight - y);
 }

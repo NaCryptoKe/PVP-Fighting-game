@@ -1,7 +1,8 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef CHARACTER_H
+#define CHARACTER_H
 
-#include "entities/PlayerState.h"
+#include "entities/CharacterState.h"
+#include "entities/CharacterRoster.h"
 #include "utils/AABB.h"
 #include "graphics/Animation.h"
 #include "graphics/Sprite.h"
@@ -9,21 +10,21 @@
 #include <unordered_map>
 #include <string>
 
-class Player
+class Character
 {
 private:
     float positionX;
     float positionY;
     float velocityX;
     float velocityY;
-    const float jumpForce = 2571.43f;
-    const float walk = 450.0f;
+    float jumpForce = 2571.43f;
+    float walkSpeed = 450.0f;
 
     float maxHealth;
     float currentHealth;
 
     bool facingRight;
-    PlayerState currentState;
+    CharacterState currentState;
 
     BOX hitbox;
 
@@ -40,7 +41,10 @@ private:
     Sprite sprite;
 
 public:
-    Player(float posX, float posY, float HP);
+    Character(float posX, float posY, float HP);
+
+    // Load all stats and attacks from a CharacterData at once
+    void applyData(const CharacterData& data);
 
     void update(float deltaTime);
     void render();
@@ -70,7 +74,7 @@ public:
     void setVelocityX(float velX);
     void setVelocityY(float velY);
     void setFacingRight(bool facingRight);
-    void setState(PlayerState state);
+    void setState(CharacterState state);
     void setHitBox(float offsetX, float offsetY, float width, float height);
 
     float getPositionX() const;
@@ -81,7 +85,7 @@ public:
     float getMaxHealth() const;
     bool isFacingRight() const;
     bool isGrounded() const;
-    PlayerState getState() const;
+    CharacterState getState() const;
     AABB getHitBox() const;
 
     bool loadAttack(
@@ -94,6 +98,8 @@ public:
     void performAttack(const std::string &name);
     std::string getCurrentAttackName() const;
     void updateAttack(float deltaTime);
+    // Advances the animation for the current state and feeds it to the sprite
+    void updateAnimation(float deltaTime);
     bool isActiveAttack() const;
     bool getActiveAttackHitbox(AABB &outBox) const;
     float getCurrentAttackDamage() const;
@@ -104,4 +110,4 @@ public:
     void collision(float leftLimit, float rightLimit);
 };
 
-#endif // PLAYER_H
+#endif // CHARACTER_H

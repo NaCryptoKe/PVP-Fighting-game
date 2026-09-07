@@ -1,9 +1,9 @@
-#ifndef PLAYER_STATE_H
-#define PLAYER_STATE_H
+#ifndef CHARACTER_STATE_H
+#define CHARACTER_STATE_H
 
 #include "utils/AABB.h"
 
-enum class PlayerState
+enum class CharacterState
 {
     IDLE,
     WALK,
@@ -36,4 +36,4 @@ struct AttackData
     AttackType type;
 };
 
-#endif  // PLAYER_STATE_H
+#endif  // CHARACTER_STATE_H

@@ -23,12 +23,12 @@ bool InputManager::isKeyReleased(unsigned char key) const
     return !currentKeyStates[key] && previousKeyStates[key];
 }
 
-void InputManager::handleKeyDown(unsigned char key, int x, int y)
+void InputManager::handleKeyDown(unsigned char key, [[maybe_unused]]int x, [[maybe_unused]]int y)
 {
     currentKeyStates[key] = true;
 }
 
-void InputManager::handleKeyUp(unsigned char key, int x, int y)
+void InputManager::handleKeyUp(unsigned char key, [[maybe_unused]]int x, [[maybe_unused]]int y)
 {
     currentKeyStates[key] = false;
 }
@@ -52,14 +52,14 @@ bool InputManager::isSpecialKeyReleased(int key) const
     return !currentSpecialKeyStates[key] && previousSpecialKeyStates[key];
 }
 
-void InputManager::handleSpecialKeyDown(int key, int x, int y)
+void InputManager::handleSpecialKeyDown(int key, [[maybe_unused]]int x, [[maybe_unused]]int y)
 {
     if (key >= 0 && key < MAX_SPECIAL_KEYS) {
         currentSpecialKeyStates[key] = true;
     }
 }
 
-void InputManager::handleSpecialKeyUp(int key, int x, int y)
+void InputManager::handleSpecialKeyUp(int key, [[maybe_unused]]int x, [[maybe_unused]]int y)
 {
     if (key >= 0 && key < MAX_SPECIAL_KEYS) {
         currentSpecialKeyStates[key] = false;

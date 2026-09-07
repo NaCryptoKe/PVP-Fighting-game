@@ -28,7 +28,8 @@ void Renderer::drawQuad(
 {
     glDisable(GL_TEXTURE_2D);
 
-    glColor4f(r, g, b, a-0.7);
+    // Filled quad (semi-transparent interior)
+    glColor4f(r, g, b, a * 0.3f);
     glBegin(GL_QUADS);
         glVertex2f(x, y);                  // Bottom-Left
         glVertex2f(x + width, y);          // Bottom-Right
@@ -36,6 +37,7 @@ void Renderer::drawQuad(
         glVertex2f(x, y + height);         // Top-Left
     glEnd();
 
+    // Outline (fully opaque)
     glColor4f(r, g, b, a);
     glLineWidth(3.0f);
     glBegin(GL_LINE_LOOP);
