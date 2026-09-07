@@ -1,6 +1,7 @@
 #include "entities/Player.h"
 
 #include "GL/glut.h"
+#include "render/Renderer.h"
 #include <iostream>
 #include <cmath>
 
@@ -42,30 +43,41 @@ void Player::update(float deltaTime)
 
 void Player::render()
 {
-    glPushMatrix();
-    float length = 300.0f;
-    glTranslatef(positionX, positionY, 0.0f);
+    // If sprite has a valid texture, render it; otherwise use fallback colored quad
+    if (sprite.getTexture().id != 0)
+    {
+        sprite.setPosition(positionX, positionY);
+        sprite.setFlip(!facingRight);
+        sprite.draw();
+    }
+    else
+    {
+        // Fallback to colored quad for development
+        glPushMatrix();
+        float length = 300.0f;
+        glTranslatef(positionX, positionY, 0.0f);
 
-    glBegin(GL_QUADS);
-        switch (currentState)
-        {
-            case PlayerState::IDLE:    glColor3f(0.0f, 1.0f, 0.0f); break;
-            case PlayerState::WALK:    glColor3f(0.0f, 0.0f, 1.0f); break;
-            case PlayerState::RUN:     glColor3f(1.0f, 0.0f, 0.0f); break;
-            case PlayerState::JUMP:    glColor3f(1.0f, 1.0f, 0.0f); break;
-            case PlayerState::ATTACK:  glColor3f(1.0f, 0.5f, 0.0f); break;
-            case PlayerState::BLOCK:   glColor3f(0.5f, 0.5f, 0.5f); break;
-            case PlayerState::HITSTUN: glColor3f(1.0f, 0.0f, 1.0f); break;
-            case PlayerState::DEATH:   glColor3f(0.1f, 0.1f, 0.1f); break;
-            case PlayerState::CROUCH:   glColor3f(0.55f, 0.27f, 0.07f); break;
-        }
-        glVertex2f(-length / 2.0f, 0.0f);
-        glVertex2f( length / 2.0f, 0.0f);
-        glVertex2f( length / 2.0f, length);
-        glVertex2f(-length / 2.0f, length);
-    glEnd();
+        glBegin(GL_QUADS);
+            switch (currentState)
+            {
+                case PlayerState::IDLE:    glColor3f(0.0f, 1.0f, 0.0f); break;
+                case PlayerState::WALK:    glColor3f(0.0f, 0.0f, 1.0f); break;
+                case PlayerState::RUN:     glColor3f(1.0f, 0.0f, 0.0f); break;
+                case PlayerState::JUMP:    glColor3f(1.0f, 1.0f, 0.0f); break;
+                case PlayerState::ATTACK:  glColor3f(1.0f, 0.5f, 0.0f); break;
+                case PlayerState::BLOCK:   glColor3f(0.5f, 0.5f, 0.5f); break;
+                case PlayerState::HITSTUN: glColor3f(1.0f, 0.0f, 1.0f); break;
+                case PlayerState::DEATH:   glColor3f(0.1f, 0.1f, 0.1f); break;
+                case PlayerState::CROUCH:  glColor3f(0.55f, 0.27f, 0.07f); break;
+            }
+            glVertex2f(-length / 2.0f, 0.0f);
+            glVertex2f( length / 2.0f, 0.0f);
+            glVertex2f( length / 2.0f, length);
+            glVertex2f(-length / 2.0f, length);
+        glEnd();
 
-    glPopMatrix();
+        glPopMatrix();
+    }
 }
 
 void Player::renderHitBox()
@@ -325,6 +337,14 @@ void Player::updateAttack(float deltaTime)
         frameCounter = 0;
         frameAccumulator = 0.0f;
         hasHit = false;
+    }
+
+    // Update animation if it exists for this attack state
+    auto animIt = animations.find(currentAttackName);
+    if (animIt != animations.end())
+    {
+        animIt->second.update(deltaTime);
+        sprite.setTexture(animIt->second.getCurrentTexture());
     }
 }
 

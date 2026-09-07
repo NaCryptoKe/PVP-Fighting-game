@@ -3,13 +3,21 @@
 #include <cstdlib>
 
 #include "core/Game.h"
+#include "render/Renderer.h"
 
 Game::Game() {}
 
 void Game::init()
 {
+    Renderer::init();
+    
     timer.start();
     roundTimer.reset(90);
+
+    // Load font for UI
+    gameFont.load("assets/fonts/Arial.ttf", 32.0f);
+    hud1.setViewportSize(1920.0f, 1080.0f);
+    hud2.setViewportSize(1920.0f, 1080.0f);
 
     player1.setHitBox(-100.0f, 0.0f, 200.0f, 300.0f);
     player2.setHitBox(-50.0f, 0.0f, 100.0f, 300.0f);
@@ -42,6 +50,43 @@ void Game::render()
         glVertex2f(-2880.0f, 120.0f);
         glVertex2f(4800.0f, 120.0f);
     glEnd();
+
+    // Switch to orthographic projection for HUD rendering
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0.0, 1920.0, 0.0, 1080.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Render HUD elements
+    hud1.drawHealthBar(50.0f, 1000.0f, 30.0f, false);
+    hud2.drawHealthBar(1670.0f, 1000.0f, 30.0f, true);
+    
+    if (matchPhase == MatchPhase::ROUND_OVER)
+    {
+        if (player1.getHealth() <= 0.0f)
+            hud2.drawWinnerMessage(gameFont, "Player 2");
+        else
+            hud1.drawWinnerMessage(gameFont, "Player 1");
+    }
+    
+    if (matchPhase == MatchPhase::MATCH_OVER)
+    {
+        if (roundWinsP1 >= 2)
+            hud1.drawWinnerMessage(gameFont, "Player 1 is Champion!");
+        else
+            hud2.drawWinnerMessage(gameFont, "Player 2 is Champion!");
+    }
+    
+    hud1.drawTimer(gameFont, roundTimer.getSecondsRemaining(), 50.0f);
+
+    // Restore projection matrix
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 
     glutSwapBuffers();
 }
