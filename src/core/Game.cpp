@@ -15,7 +15,7 @@ void Game::init()
     roundTimer.reset(90);
 
     // Load font for UI
-    gameFont.load("assets/fonts/Arial.ttf", 32.0f);
+    gameFont.load("assets/fonts/main.ttf", 32.0f);
     hud1.setViewportSize(1920.0f, 1080.0f);
     hud2.setViewportSize(1920.0f, 1080.0f);
 
