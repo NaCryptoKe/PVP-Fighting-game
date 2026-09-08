@@ -24,13 +24,16 @@ private:
 public:
     Animation();
 
-    // Loads frames named like "00.png", "01.png", ... "NN.png" from a folder.
-    // e.g. loadFromFiles("assets/characters/ryu/jump-forward/", 6, 0.08f)
-    // loads jump-forward/00.png through 05.png at ~12.5 FPS playback.
+    // Loads `frameCount` frames named like "NN.png" from a folder, starting
+    // at `startFrame`. Most sprite folders are exported as 01.png..NN.png
+    // (startFrame = 1), while some begin at 00.png (startFrame = 0).
+    // e.g. loadFromFiles("assets/characters/ryu/idle/", 4, 0.15f)
+    //      loads idle/00.png through 03.png at ~6.7 FPS playback.
     bool loadFromFiles(
         const char* folderPath, 
         int frameCount, float duration, 
-        bool loop = true
+        bool loop = true,
+        int startFrame = 0
     );
 
     // Advances playback. Call once per frame with the time elapsed since last call.

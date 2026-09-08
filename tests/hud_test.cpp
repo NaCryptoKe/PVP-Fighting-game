@@ -25,6 +25,7 @@
 #include "render/HUD.h"
 #include "render/Font.h"
 #include "render/Renderer.h"
+#include "computer_graphics/core/Orthographic.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -49,7 +50,8 @@ static void display(void)
     // Orthographic HUD space: 1920 x 1080, origin bottom-left
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, 1920.0, 0.0, 1080.0, -1.0, 1.0);
+    // Custom orthographic projection from the cg math core
+    glLoadMatrixf(cg::Orthographic(0.0f, 1920.0f, 0.0f, 1080.0f).toMatrix().data());
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -125,7 +127,8 @@ int main(int argc, char** argv)
     // Map 1280x720 window onto the 1920x1080 virtual canvas (2/3 scale)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, 1920.0, 0.0, 1080.0, -1.0, 1.0);
+    // Custom orthographic projection from the cg math core
+    glLoadMatrixf(cg::Orthographic(0.0f, 1920.0f, 0.0f, 1080.0f).toMatrix().data());
     glMatrixMode(GL_MODELVIEW);
 
     printf("===========================================\n");

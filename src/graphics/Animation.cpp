@@ -8,7 +8,8 @@ Animation::Animation()
 bool Animation::loadFromFiles(
     const char* folderPath, 
     int frameCount, float duration, 
-    bool loop
+    bool loop,
+    int startFrame
 )
 {
     frameDuration = duration; // how long each frame should take
@@ -23,8 +24,10 @@ bool Animation::loadFromFiles(
     for (int i = 0; i < frameCount; ++i) 
     {
         char path[256];
-        snprintf(path, sizeof(path), "%s%02d.png", folderPath, i);  // basically delegating finding png
-        // to naming format of 0x.png
+        // Frame numbering starts at startFrame because most sprite folders
+        // are exported as 01.png..NN.png while some start at 00.png.
+        snprintf(path, sizeof(path), "%s%02d.png", folderPath, startFrame + i);  // basically delegating finding png
+                                                                                 // to naming format of 0x.png
 
         TextureData tex = loadTexture(path);
         if (tex.id == 0) 

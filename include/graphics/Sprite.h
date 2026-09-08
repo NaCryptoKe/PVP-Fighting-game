@@ -2,29 +2,33 @@
 #define SPRITE_H
 
 #include "GL/glut.h"
+
+#include "computer_graphics/core/Transform.h"
 #include "graphics/Texture.h"
 
+// A textured quad placed in the world through a cg::Transform (position,
+// rotation, scale). The transform's position is the FOOT anchor: the pivot
+// sits horizontally centered, on the ground line.
 class Sprite
 {
 private:
     TextureData texture;
-
-    float x, y; // foot anchor points
-    float scale;
+    cg::Transform transform;   // position / rotation / scale of the sprite
     bool flipX;
 
 public:
     Sprite();
-    Sprite(TextureData texture);
+    explicit Sprite(TextureData texture);
 
-public:
     void setTexture(TextureData texture);   // takes texturedata struct from the texture
     void setPosition(float x, float y);
-    void setScale(float scale);
-    void setFlip(bool flip);
+    void setPosition(const cg::Vec2& position);
+    void setScale(float scale);             // uniform multiplier on the texture's pixel size
+    void setRotationDegrees(float degrees); // rotation about Z, around the foot anchor
+    void setFlip(bool flip);                // mirror horizontally (negative X scale)
     TextureData getTexture() const;
+    const cg::Transform& getTransform() const;
 
-public:
-    void draw() const;  // delegates to the renderer::drawfighter internally
+    void draw() const;  // delegates to the renderer with the composed transform
 };
 #endif // SPRITE_H

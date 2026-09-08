@@ -9,6 +9,11 @@ struct Camera
     float minZoom = 0.5f;
     float maxZoom = 1.5f;
 
+    // World-space point the camera is looking at (published by apply());
+    // the parallax background scrolls its layers based on this.
+    float centerX = 0.0f;
+    float centerY = 150.0f;
+
     float leftLimit = -3000.0f;
     float rightLimit = 3000.0f;
 
